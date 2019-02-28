@@ -1,5 +1,6 @@
 using LinearAlgebra
 using Interpolations
+using SpecialFunctions
 using PyPlot
 
 function bound2vert(bmin, bmax)
@@ -14,7 +15,6 @@ function bound2vert(bmin, bmax)
     v_lst = [v1, v2, v3, v4]
     return v_lst
 end
-
 
 mutable struct Node
     id_node::Int
@@ -67,9 +67,11 @@ function needSplitting(node::Node, f)
 
     center_itp = itp(1.5, 1.5) # note: interp starts from 1 
     center_real = f(0.5*(node.b_max + node.b_min))
-    error = abs(center_itp - center_real)
 
-    return ~(error<1.0) 
+    error = abs(center_itp - center_real)
+    #println(error)
+
+    return ~(error<0.01) 
 end
 
 function auto_split!(tree::Tree, f) # recursive way
@@ -111,12 +113,34 @@ function show(tree::Tree)
     println("finish show")
 end
 
-f(p) = -norm(p)^2
+sigma = 8
+f(x) = 0.5*(1 + erf((-norm(x)+40)/sqrt(2*sigma^2)))
 t = Tree([-100, -100], [100, 100])
 auto_split!(t, f)
 show(t)
-#needSplitting(t.node[1], f)
-#split!(t, 1)
+
+#=
+function main1()
+    sigma = 6
+    f(x) = 1/sqrt(2*pi*sigma^2)*exp(-(norm(x)-30)^2/(2*sigma^2))
+    x_start = 60
+    v_lst = bound2vert([x_start, x_start], [x_start + 5, x_start + 5])
+    f_lst = [f(v) for v in v_lst]
+    data = [f_lst[1] f_lst[4]; f_lst[2] f_lst[3]]
+    println(data)
+    itp = interpolate(data, BSpline(Linear()))
+    println(itp(1.5, 1.5))
+    println(f([x_start + 2.5, x_start + 2.5]))
+    v = itp(1.5, 1.5) - f([x_start + 2.5, x_start + 2.5])
+    println(v)
+end
+main1()
+=#
+                  
+
+
+
+
 
     
 
