@@ -4,8 +4,8 @@ using PyPlot
 
 function bound2vert(bmin, bmax)
     dif = bmax - bmin
-    dx = [dif[1]*0.5, 0]
-    dy = [0, dif[2]*0.5]
+    dx = [dif[1], 0]
+    dy = [0, dif[2]]
 
     v1 = bmin
     v2 = bmin + dx
@@ -69,7 +69,7 @@ function needSplitting(node::Node, f)
     center_real = f(0.5*(node.b_max + node.b_min))
     error = abs(center_itp - center_real)
 
-    return ~(error<0.2) 
+    return ~(error<1.0) 
 end
 
 function auto_split!(tree::Tree, f) # recursive way
@@ -112,7 +112,7 @@ function show(tree::Tree)
 end
 
 f(p) = -norm(p)^2
-t = Tree([-2, -2], [2, 2])
+t = Tree([-100, -100], [100, 100])
 auto_split!(t, f)
 show(t)
 #needSplitting(t.node[1], f)
