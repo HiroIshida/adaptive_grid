@@ -88,19 +88,33 @@ end
 
 function show(tree::Tree)
     function recursion(n_node::Int)
-        for id in tree.node[n_node].leaf
-            node = tree.node[n_node]
-            if ~node.hasLeaf
+        node = tree.node[n_node]
+        if node.hasLeaf
+            for id in tree.node[n_node].leaf
+                recursion(id)
+            end
+        else
+            v_lst = bound2vert(node.b_min, node.b_max)
+            for n = 1:4
+                if n!=4
+                    x = [v_lst[n][1], v_lst[n+1][1]]
+                    y = [v_lst[n][2], v_lst[n+1][2]]
+                else
+                    x = [v_lst[4][1], v_lst[1][1]]
+                    y = [v_lst[4][2], v_lst[1][2]]
+                end
+                PyPlot.plot(x, y, "r-")
             end
         end
     end
     recursion(1)
+    println("finish show")
 end
 
 f(p) = -norm(p)^2
 t = Tree([-2, -2], [2, 2])
 auto_split!(t, f)
-#show(t)
+show(t)
 #needSplitting(t.node[1], f)
 #split!(t, 1)
 
