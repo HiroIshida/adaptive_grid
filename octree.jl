@@ -1,5 +1,20 @@
 using LinearAlgebra
 using Interpolations
+using PyPlot
+
+function bound2vert(bmin, bmax)
+    dif = bmax - bmin
+    dx = [dif[1]*0.5, 0]
+    dy = [0, dif[2]*0.5]
+
+    v1 = bmin
+    v2 = bmin + dx
+    v3 = bmin + dx + dy
+    v4 = bmin + dy
+    v_lst = [v1, v2, v3, v4]
+    return v_lst
+end
+
 
 mutable struct Node
     id_node::Int
@@ -44,34 +59,38 @@ function split!(tree::Tree, n_num::Int)
 end
 
 function needSplitting(node::Node, f)
-    dif = node.b_max - node.b_min
-    dx = [dif[1]*0.5, 0]
-    dy = [0, dif[2]*0.5]
-    
-    v1 = node.b_min; f1 = f(v1)
-    v2 = node.b_min + dx; f2 = f(v2)
-    v3 = node.b_min + dx + dy; f3 = f(v3)
-    v4 = node.b_min + dy; f4 = f(v4)
+    v_lst = bound2vert(node.b_min, node.b_max)
+    f_lst = [f(v) for v in v_lst]
 
-    data = [f1 f4; f2 f3]
+    data = [f_lst[1] f_lst[4]; f_lst[2] f_lst[3]]
     itp = interpolate(data, BSpline(Linear()))
 
     center_itp = itp(1.5, 1.5) # note: interp starts from 1 
     center_real = f(0.5*(node.b_max + node.b_min))
     error = abs(center_itp - center_real)
-    println(error)
 
-    return ~(error<0.1) 
+    return ~(error<0.2) 
 end
 
-function split_grid!(tree::Tree, f) # recursive way
+function auto_split!(tree::Tree, f) # recursive way
     # in the laef, we must add itp
     function recursion(n_node::Int)
         if needSplitting(tree.node[n_node], f)
             split!(tree, n_node)
             for id in tree.node[n_node].leaf
-            println("aho")
                 recursion(id)
+            end
+        end
+    end
+    recursion(1)
+    println("finish autosplit")
+end
+
+function show(tree::Tree)
+    function recursion(n_node::Int)
+        for id in tree.node[n_node].leaf
+            node = tree.node[n_node]
+            if ~node.hasLeaf
             end
         end
     end
@@ -80,7 +99,8 @@ end
 
 f(p) = -norm(p)^2
 t = Tree([-2, -2], [2, 2])
-split_grid!(t, f)
+auto_split!(t, f)
+#show(t)
 #needSplitting(t.node[1], f)
 #split!(t, 1)
 
