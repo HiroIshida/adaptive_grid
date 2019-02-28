@@ -1,5 +1,6 @@
 using LinearAlgebra
 using Interpolations
+
 mutable struct Node
     id_node::Int
     b_min
@@ -56,21 +57,31 @@ function needSplitting(node::Node, f)
     itp = interpolate(data, BSpline(Linear()))
 
     center_itp = itp(1.5, 1.5) # note: interp starts from 1 
-    center_real = f(0.5*(node.b_max - node.b_min))
+    center_real = f(0.5*(node.b_max + node.b_min))
+    error = abs(center_itp - center_real)
+    println(error)
 
-    return ~(abs(center_itp - center_real)<0.1)
+    return ~(error<0.1) 
 end
 
-function split_grid(tree::Tree) # recursive way
-    function recursion(node::Node)
-        if needSplitting
+function split_grid!(tree::Tree, f) # recursive way
+    # in the laef, we must add itp
+    function recursion(n_node::Int)
+        if needSplitting(tree.node[n_node], f)
+            split!(tree, n_node)
+            for id in tree.node[n_node].leaf
+            println("aho")
+                recursion(id)
+            end
         end
     end
+    recursion(1)
 end
 
 f(p) = -norm(p)^2
 t = Tree([-2, -2], [2, 2])
-needSplitting(t.node[1], f)
+split_grid!(t, f)
+#needSplitting(t.node[1], f)
 #split!(t, 1)
 
     
