@@ -30,9 +30,11 @@ end
 mutable struct Tree
     N::Int
     node::Vector{Node}
+    node_root::Node
     function Tree(b_min, b_max)
         id_node = 1
-        new(1, [Node(id_node, b_min, b_max)])
+        node_root = Node(id_node, b_min, b_max)
+        new(1, [node_root], node_root)
     end
 end
 
@@ -96,7 +98,7 @@ function auto_split!(tree::Tree, f) # recursive way
 
         end
     end
-    recursion(tree.node[1])
+    recursion(tree.node_root)
     println("finish autosplit")
 end
 
@@ -120,7 +122,7 @@ function show(tree::Tree)
             end
         end
     end
-    recursion(tree.node[1])
+    recursion(tree.node_root)
     println("finish show")
 end
 
