@@ -2,28 +2,17 @@ using LinearAlgebra
 using Interpolations
 using SpecialFunctions
 using PyPlot
-
-function bound2vert(bmin, bmax)
-    dif = bmax - bmin
-    dx = [dif[1], 0]
-    dy = [0, dif[2]]
-
-    v1 = bmin
-    v2 = bmin + dx
-    v3 = bmin + dx + dy
-    v4 = bmin + dy
-    v_lst = [v1, v2, v3, v4]
-    return v_lst
-end
+import Base: show
+include("utils.jl")
 
 mutable struct Node
-    id_node::Int
+    id::Int
     b_min
     b_max
     id_child::Union{Vector{Int}, Nothing}
     itp # type?
-    function Node(id_node, b_min, b_max)
-        new(id_node, b_min, b_max, nothing, nothing)
+    function Node(id, b_min, b_max)
+        new(id, b_min, b_max, nothing, nothing)
     end
 end
 
@@ -51,7 +40,7 @@ function split!(tree::Tree, node::Node)
     dy = [0, dif[2]*0.5]
     b_center = b_min .+ dx .+ dy
 
-    for i in 0:1, j in 0:1#, k in 0:1
+    for j in 0:1, i in 0:1#, k in 0:1
         add = (i%2)*dx + (j%2)*dy 
         node_new = Node(tree.N+1, b_min+add, b_center+add)
         push!(tree.node, node_new)
@@ -92,8 +81,8 @@ function auto_split!(tree::Tree, f) # recursive way
             itp_ = interpolate(data, BSpline(Linear())) # this raw itp object is useless as it is now
 
             node.itp = function itp(p)
-                p_modif = (p - b_min)./(b_max - b_min) + 1
-                return itp(p_modif[1], p_modif[2])
+                p_modif = (p - b_min)./(b_max - b_min) .+ 1
+                return itp_(p_modif[1], p_modif[2])
             end
 
         end
@@ -109,17 +98,8 @@ function show(tree::Tree)
                 recursion(tree.node[id])
             end
         else
-            v_lst = bound2vert(node.b_min, node.b_max)
-            for n = 1:4
-                if n!=4
-                    x = [v_lst[n][1], v_lst[n+1][1]]
-                    y = [v_lst[n][2], v_lst[n+1][2]]
-                else
-                    x = [v_lst[4][1], v_lst[1][1]]
-                    y = [v_lst[4][2], v_lst[1][2]]
-                end
-                PyPlot.plot(x, y, "r-")
-            end
+            show(node; color=:r)
+            sleep(0.01)
         end
     end
     recursion(tree.node_root)
@@ -127,11 +107,21 @@ function show(tree::Tree)
 end
 
 function search_idx(tree::Tree, q)
-
-    function recursion(n_node::Int)
-
+    node = tree.node_root
+    while(true)
+        if node.id_child == nothing
+            return node.id
+        end
+        idx = whereami(q, node.b_min, node.b_max)
+        id_next = node.id_child[idx]
+        node = tree.node[id_next]
     end
+end
 
+function evaluate(tree::Tree, q)
+    id = search_idx(tree, q)
+    node = tree.node[id]
+    return node.itp(q)
 end
 
 
@@ -140,7 +130,9 @@ sigma = 8
 f(x) = 0.5*(1 + erf((-norm(x)+40)/sqrt(2*sigma^2)))
 t = Tree([-100, -100], [100, 100])
 auto_split!(t, f)
-show(t)
+
+q = [60, 0]
+println(evaluate(t, q))
 
 #=
 function main1()
