@@ -11,20 +11,6 @@ function bound2vert(b_min, b_max)
     return v_lst
 end
 
-function show(node::Node; color=:r)
-    v_lst = bound2vert(node.b_min, node.b_max)
-    for n = 1:4
-        if n!=4
-            x = [v_lst[n][1], v_lst[n+1][1]]
-            y = [v_lst[n][2], v_lst[n+1][2]]
-        else
-            x = [v_lst[4][1], v_lst[1][1]]
-            y = [v_lst[4][2], v_lst[1][2]]
-        end
-        PyPlot.plot(x, y, color)
-    end
-end
-
 function itr()
     error("under construction")
     idx = 0

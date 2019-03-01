@@ -16,32 +16,52 @@ mutable struct Node
     end
 end
 
+function show(node::Node; color=:r)
+    v_lst = bound2vert(node.b_min, node.b_max)
+    for n = 1:4
+        if n!=4
+            x = [v_lst[n][1], v_lst[n+1][1]]
+            y = [v_lst[n][2], v_lst[n+1][2]]
+        else
+            x = [v_lst[4][1], v_lst[1][1]]
+            y = [v_lst[4][2], v_lst[1][2]]
+        end
+        PyPlot.plot(x, y, color)
+    end
+end
+
 mutable struct Tree
     N::Int
+    ndim::Int
     node::Vector{Node}
     node_root::Node
     function Tree(b_min, b_max)
         id_node = 1
+        ndim = length(b_min)
         node_root = Node(id_node, b_min, b_max)
-        new(1, [node_root], node_root)
+        new(id_node, ndim, [node_root], node_root)
     end
 end
 
 function split!(tree::Tree, node::Node)
     # edit node
-    leaves = [1, 2, 3, 4] .+ tree.N
+    leaves = [i for i in 1:2^(tree.ndim)] .+ tree.N
     node.id_child = leaves
 
     # edit tree
     b_min = node.b_min
     b_max = node.b_max
     dif = b_max - b_min
-    dx = [dif[1]*0.5, 0]
-    dy = [0, dif[2]*0.5]
-    b_center = b_min .+ dx .+ dy
+    dx = Vector{Float64}[]
+    for i in 1:tree.ndim
+        dx_ = [0.0 for n=1:tree.ndim]
+        dx_[i] = dif[i]*0.5
+        push!(dx, dx_)
+    end
+    b_center = b_min .+ dx[1] .+ dx[2]
 
     for j in 0:1, i in 0:1#, k in 0:1
-        add = (i%2)*dx + (j%2)*dy 
+        add = (i%2)*dx[1] + (j%2)*dx[2]
         node_new = Node(tree.N+1, b_min+add, b_center+add)
         push!(tree.node, node_new)
         tree.N += 1
@@ -61,7 +81,7 @@ function needSplitting(node::Node, f)
     error = abs(center_itp - center_real)
     #println(error)
 
-    return ~(error<0.02) 
+    return ~(error<0.05) 
 end
 
 function auto_split!(tree::Tree, f) # recursive way
@@ -99,7 +119,7 @@ function show(tree::Tree)
             end
         else
             show(node; color=:r)
-            sleep(0.01)
+            sleep(0.002)
         end
     end
     recursion(tree.node_root)
@@ -130,9 +150,10 @@ sigma = 8
 f(x) = 0.5*(1 + erf((-norm(x)+40)/sqrt(2*sigma^2)))
 t = Tree([-100, -100], [100, 100])
 auto_split!(t, f)
+show(t)
 
 q = [60, 0]
-println(evaluate(t, q))
+#println(evaluate(t, q))
 
 #=
 function main1()
