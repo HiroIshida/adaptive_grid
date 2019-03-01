@@ -35,10 +35,12 @@ function show(node::Node; color=:r)
 end
 
 mutable struct Tree
+    # member variable
     N::Int
     ndim::Int
     node::Vector{Node}
     node_root::Node
+
     function Tree(b_min, b_max)
         id_node = 1
         ndim = length(b_min)
@@ -74,7 +76,7 @@ function split!(tree::Tree, node::Node)
     end
 end
 
-function needSplitting(node::Node, f, ε)
+function pred_simplest(node::Node, f, ε)
     ndim = node.ndim
     v_lst = bound2vert(node.b_min, node.b_max)
     f_lst = [f(v) for v in v_lst]
@@ -95,15 +97,18 @@ function needSplitting(node::Node, f, ε)
     return ~(error<ε)
 end
 
-function auto_split!(tree::Tree, f, ε) # recursive way
-    # in the laef, we must add itp
+function auto_split!(tree::Tree, f, predicate) 
+    # recusive split based on the boolean returned by predicate
+    # perdicate: Node →  bool
+    # interpolation objecet is endowed with each terminal nodes hh
+    
     function recursion(node::Node)
-        if needSplitting(node, f, ε)
+        if predicate(node)
             split!(tree, node)
             for id in node.id_child
                 recursion(tree.node[id])
             end
-        else  # if the node is the final decendent, we endow itp to them
+        else  # if terminal node
             b_min = node.b_min
             b_max = node.b_max
             v_lst = bound2vert(b_min, b_max)
@@ -114,7 +119,7 @@ function auto_split!(tree::Tree, f, ε) # recursive way
 
             node.itp = function itp(p)
                 p_modif = (p - b_min)./(b_max - b_min) .+ 1
-                # TODO dirty, dirty, dirty!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                # TODO dirty, dirty, dirty!!
                 if tree.ndim == 2
                     return itp_(p_modif[1], p_modif[2])
                 else tree.ndim == 3

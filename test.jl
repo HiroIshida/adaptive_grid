@@ -14,9 +14,10 @@ function test_2dim(tol)
     a = pi/10
     b = [60, 30]
     f(x) = 0.5*(1 + erf(sdf(x, a, b)/sqrt(2*sigma^2)))
+    predicate(node::Node) = pred_simplest(node, f, tol)
 
     tree = Tree([-100, -100], [100, 100])
-    auto_split!(tree, f, tol)
+    auto_split!(tree, f, predicate)
     
     isValid = true
     for i in 1:1000
@@ -40,9 +41,11 @@ function test_3dim(tol)
 
     b = [60, 30, 30]
     f(x) = 0.5*(1 + erf(sdf(x, b)/sqrt(2*sigma^2)))
+    predicate(node::Node) = pred_simplest(node, f, tol)
+
 
     tree = Tree([-100, -100, -100], [100, 100, 100])
-    auto_split!(tree, f, tol)
+    auto_split!(tree, f, predicate)
     #show(t)
     
     isValid = true
