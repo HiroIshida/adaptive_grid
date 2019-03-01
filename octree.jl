@@ -21,8 +21,9 @@ mutable struct Node
     b_min
     b_max
     id_child::Union{Vector{Int}, Nothing}
+    itp # type?
     function Node(id_node, b_min, b_max)
-        new(id_node, b_min, b_max, nothing)
+        new(id_node, b_min, b_max, nothing, nothing)
     end
 end
 
@@ -69,7 +70,7 @@ function needSplitting(node::Node, f)
     error = abs(center_itp - center_real)
     #println(error)
 
-    return ~(error<0.01) 
+    return ~(error<0.02) 
 end
 
 function auto_split!(tree::Tree, f) # recursive way
@@ -80,7 +81,19 @@ function auto_split!(tree::Tree, f) # recursive way
             for id in tree.node[n_node].id_child
                 recursion(id)
             end
-        else # if 
+        else  # if the node is the final decendent, we endow itp to them
+            b_min = tree.node[n_node].b_min
+            b_max = tree.node[n_node].b_max
+            v_lst = bound2vert(b_min, b_max)
+            f_lst = [f(v) for v in v_lst]
+            data = [f_lst[1] f_lst[4]; f_lst[2] f_lst[3]]
+            itp_ = interpolate(data, BSpline(Linear())) # this raw itp object is useless as it is now
+
+            tree.node[n_node].itp = function itp(p)
+                p_modif = (p - b_min)./(b_max - b_min) + 1
+                return itp(p_modif[1], p_modif[2])
+            end
+
         end
     end
     recursion(1)
@@ -111,6 +124,8 @@ function show(tree::Tree)
     recursion(1)
     println("finish show")
 end
+
+
 
 sigma = 8
 f(x) = 0.5*(1 + erf((-norm(x)+40)/sqrt(2*sigma^2)))
