@@ -19,7 +19,7 @@ end
 function itr(ndim)
     i = 0
     return function closure()
-        indicater = Float64[]
+        indicater = Int[]
         for dim in 1:ndim
             push!(indicater, mod(div(i, 2^(dim-1)), 2))
         end
