@@ -36,14 +36,14 @@ mutable struct Tree
     end
 end
 
-function split!(tree::Tree, n_num::Int)
+function split!(tree::Tree, node::Node)
     # edit node
     leaves = [1, 2, 3, 4] .+ tree.N
-    tree.node[n_num].id_child = leaves
+    node.id_child = leaves
 
     # edit tree
-    b_min = tree.node[n_num].b_min
-    b_max = tree.node[n_num].b_max
+    b_min = node.b_min
+    b_max = node.b_max
     dif = b_max - b_min
     dx = [dif[1]*0.5, 0]
     dy = [0, dif[2]*0.5]
@@ -75,37 +75,36 @@ end
 
 function auto_split!(tree::Tree, f) # recursive way
     # in the laef, we must add itp
-    function recursion(n_node::Int)
-        if needSplitting(tree.node[n_node], f)
-            split!(tree, n_node)
-            for id in tree.node[n_node].id_child
-                recursion(id)
+    function recursion(node::Node)
+        if needSplitting(node, f)
+            split!(tree, node)
+            for id in node.id_child
+                recursion(tree.node[id])
             end
         else  # if the node is the final decendent, we endow itp to them
-            b_min = tree.node[n_node].b_min
-            b_max = tree.node[n_node].b_max
+            b_min = node.b_min
+            b_max = node.b_max
             v_lst = bound2vert(b_min, b_max)
             f_lst = [f(v) for v in v_lst]
             data = [f_lst[1] f_lst[4]; f_lst[2] f_lst[3]]
             itp_ = interpolate(data, BSpline(Linear())) # this raw itp object is useless as it is now
 
-            tree.node[n_node].itp = function itp(p)
+            node.itp = function itp(p)
                 p_modif = (p - b_min)./(b_max - b_min) + 1
                 return itp(p_modif[1], p_modif[2])
             end
 
         end
     end
-    recursion(1)
+    recursion(tree.node[1])
     println("finish autosplit")
 end
 
 function show(tree::Tree)
-    function recursion(n_node::Int)
-        node = tree.node[n_node]
+    function recursion(node::Node)
         if node.id_child!=nothing
-            for id in tree.node[n_node].id_child
-                recursion(id)
+            for id in node.id_child
+                recursion(tree.node[id])
             end
         else
             v_lst = bound2vert(node.b_min, node.b_max)
@@ -121,8 +120,16 @@ function show(tree::Tree)
             end
         end
     end
-    recursion(1)
+    recursion(tree.node[1])
     println("finish show")
+end
+
+function search_idx(tree::Tree, q)
+
+    function recursion(n_node::Int)
+
+    end
+
 end
 
 
