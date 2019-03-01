@@ -1,39 +1,66 @@
 function bound2vert(b_min, b_max)
-    dif = b_max - b_min
-    dx = [dif[1], 0]
-    dy = [0, dif[2]]
+    ndim = length(b_min)
+    dx = bound2dx(b_min, b_max)
+    v_lst = Vector{Float64}[]
 
-    v1 = b_min
-    v2 = b_min + dx
-    v3 = b_min + dx + dy
-    v4 = b_min + dy
-    v_lst = [v1, v2, v3, v4]
+    for i in 0:(2^ndim-1)
+        add = [0.0 for n in 1:ndim]
+        for dim in 1:ndim
+            if mod(div(i, 2^(dim-1)), 2) == 1
+                add += dx[dim]
+            end
+        end
+        push!(v_lst, b_min + add)
+
+    end
     return v_lst
 end
 
-function show(node::Node; color=:r)
-    v_lst = bound2vert(node.b_min, node.b_max)
-    for n = 1:4
-        if n!=4
-            x = [v_lst[n][1], v_lst[n+1][1]]
-            y = [v_lst[n][2], v_lst[n+1][2]]
-        else
-            x = [v_lst[4][1], v_lst[1][1]]
-            y = [v_lst[4][2], v_lst[1][2]]
+function itr(ndim)
+    i = 0
+    return function closure()
+        indicater = Int[]
+        for dim in 1:ndim
+            push!(indicater, mod(div(i, 2^(dim-1)), 2))
         end
-        PyPlot.plot(x, y, color)
+        i += 1
+        return (i<2^ndim+1 ? indicater : nothing)
     end
+
 end
 
-function itr()
-    error("under construction")
-    idx = 0
-    function closure()
-        add_x = (mod(idx, 2^1)==1)
-        add_y = (mod(idx, 2^0)==1)
-        idx += 1
+function form_data_cubic(f_lst, ndim)
+    # TODO fix this by using @eval
+    # just for now
+    if ndim == 2
+        data = zeros(2, 2)
+    elseif ndim == 3
+        data = zeros(2, 2, 2)
     end
-    return closure()
+
+    # TODO dirty dirty dirty dirty
+    it = itr(ndim)
+    for i = 1:2^ndim
+        idc = it()
+        if ndim == 2
+            data[idc[1]+1, idc[2]+1] = f_lst[i]
+        elseif ndim == 3
+            data[idc[1]+1, idc[2]+1, idc[3]+1] = f_lst[i]
+        end
+    end
+    return data
+end
+
+function bound2dx(b_min, b_max)
+    ndim = length(b_min)
+    dif = b_max - b_min
+    dx = Vector{Float64}[]
+    for i in 1:ndim
+        dx_ = [0.0 for n=1:ndim]
+        dx_[i] = dif[i]
+        push!(dx, dx_)
+    end
+    return dx
 end
 
 
