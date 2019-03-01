@@ -20,10 +20,9 @@ mutable struct Node
     id_node::Int
     b_min
     b_max
-    hasLeaf::Bool
-    leaf::Union{Vector{Int}, Nothing}
+    id_child::Union{Vector{Int}, Nothing}
     function Node(id_node, b_min, b_max)
-        new(id_node, b_min, b_max, false, nothing)
+        new(id_node, b_min, b_max, nothing)
     end
 end
 
@@ -39,8 +38,7 @@ end
 function split!(tree::Tree, n_num::Int)
     # edit node
     leaves = [1, 2, 3, 4] .+ tree.N
-    tree.node[n_num].hasLeaf = true
-    tree.node[n_num].leaf = leaves
+    tree.node[n_num].id_child = leaves
 
     # edit tree
     b_min = tree.node[n_num].b_min
@@ -79,9 +77,10 @@ function auto_split!(tree::Tree, f) # recursive way
     function recursion(n_node::Int)
         if needSplitting(tree.node[n_node], f)
             split!(tree, n_node)
-            for id in tree.node[n_node].leaf
+            for id in tree.node[n_node].id_child
                 recursion(id)
             end
+        else # if 
         end
     end
     recursion(1)
@@ -91,8 +90,8 @@ end
 function show(tree::Tree)
     function recursion(n_node::Int)
         node = tree.node[n_node]
-        if node.hasLeaf
-            for id in tree.node[n_node].leaf
+        if node.id_child!=nothing
+            for id in tree.node[n_node].id_child
                 recursion(id)
             end
         else
