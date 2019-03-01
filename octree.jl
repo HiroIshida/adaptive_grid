@@ -75,7 +75,7 @@ function needSplitting(node::Node, f)
     f_lst = [f(v) for v in v_lst]
 
     # see utils:
-    data = [f_lst[1] f_lst[4]; f_lst[2] f_lst[3]]
+    data = [f_lst[1] f_lst[2]; f_lst[3] f_lst[4]]
     itp = interpolate(data, BSpline(Linear()))
 
     center_itp = itp(1.5, 1.5) # note: interp starts from 1 

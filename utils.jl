@@ -13,15 +13,20 @@ function bound2vert(b_min, b_max)
         push!(v_lst, b_min + add)
 
     end
-
-    #=
-    v1 = b_min
-    v2 = b_min + dx
-    v3 = b_min + dx + dy
-    v4 = b_min + dy
-    v_lst = [v1, v2, v3, v4]
-    =#
     return v_lst
+end
+
+function itr(ndim)
+    i = 0
+    return function closure()
+        indicater = Float64[]
+        for dim in 1:ndim
+            push!(indicater, mod(div(i, 2^(dim-1)), 2))
+        end
+        i += 1
+        return (i<2^ndim+1 ? indicater : nothing)
+    end
+
 end
 
 function bound2dx(b_min, b_max)
