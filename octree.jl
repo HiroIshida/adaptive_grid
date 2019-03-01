@@ -2,6 +2,7 @@ using LinearAlgebra
 using Interpolations
 using SpecialFunctions
 using PyPlot
+using Test
 import Base: show
 include("utils.jl")
 
@@ -72,7 +73,7 @@ function split!(tree::Tree, node::Node)
     end
 end
 
-function needSplitting(node::Node, f)
+function needSplitting(node::Node, f, ε)
     ndim = node.ndim
     v_lst = bound2vert(node.b_min, node.b_max)
     f_lst = [f(v) for v in v_lst]
@@ -87,16 +88,16 @@ function needSplitting(node::Node, f)
         center_itp = itp(1.5, 1.5, 1.5)
     end
 
-    center_real = f(0.5*(node.b_max + node.b_min))
+    center_real = f((node.b_max + node.b_min)/2)
     error = abs(center_itp - center_real)
 
-    return ~(error<0.02)
+    return ~(error<ε)
 end
 
-function auto_split!(tree::Tree, f) # recursive way
+function auto_split!(tree::Tree, f, ε) # recursive way
     # in the laef, we must add itp
     function recursion(node::Node)
-        if needSplitting(node, f)
+        if needSplitting(node, f, ε)
             split!(tree, node)
             for id in node.id_child
                 recursion(tree.node[id])
@@ -128,7 +129,7 @@ function show(tree::Tree)
             end
         else
             show(node; color=:r)
-            sleep(0.002)
+            #sleep(0.002)
         end
     end
     recursion(tree.node_root)
@@ -155,27 +156,33 @@ end
 
 
 
-sigma = 8
-#=
-elp(x, y) = x^2/10^2 - y^2/10^2 - 1
-f(x) = 0.5*(1 + erf((-elp(x[1], x[2]))/sqrt(2*sigma^2)))
-=#
-R(a) = [cos(a) -sin(a);
-        sin(a) cos(a)]
-function sdf(x, a, b)
-    x = R(-a)*x
-    d = abs.(x) - b
-    tmp = [max(d[1], 0.0), max(d[2], 0.0)]
-    return norm(tmp) + min(max(d[1], d[2]), 0.0)
+function main()
+    sigma = 7
+    R(a) = [cos(a) -sin(a);
+            sin(a) cos(a)]
+    function sdf(x, a, b)
+        x = R(-a)*x
+        d = abs.(x) - b
+        tmp = [max(d[1], 0.0), max(d[2], 0.0)]
+        return norm(tmp) + min(max(d[1], d[2]), 0.0)
+    end
+
+    a = pi/10
+    b = [60, 30]
+    f(x) = 0.5*(1 + erf(sdf(x, a, b)/sqrt(2*sigma^2)))
+
+    tree = Tree([-100, -100], [100, 100])
+    auto_split!(tree, f, 0.01)
+    #show(t)
+    
+    for i in 1:1000
+        myrn() = rand()*200 - 100
+        q = [myrn(), myrn()]
+        error = abs(evaluate(tree, q) - f(q))
+        @test error<0.05
+    end
 end
-
-a = pi/10 + pi/2
-b = [60, 15]
-f(x) = 0.5*(1 + erf(sdf(x, a, b))/sqrt(2*sigma^2))
-
-t = Tree([-100, -100], [100, 100])
-auto_split!(t, f)
-show(t)
+main()
 
 
 
