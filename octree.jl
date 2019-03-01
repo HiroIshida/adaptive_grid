@@ -17,7 +17,8 @@ mutable struct Node
 end
 
 function show(node::Node; color=:r)
-    v_lst = bound2vert(node.b_min, node.b_max)
+    v_lst_ = bound2vert(node.b_min, node.b_max)
+    v_lst = [v_lst_[1], v_lst_[2], v_lst_[4], v_lst_[3]]
     for n = 1:4
         if n!=4
             x = [v_lst[n][1], v_lst[n+1][1]]
@@ -53,7 +54,7 @@ function split!(tree::Tree, node::Node)
     b_max = node.b_max
     dif = b_max - b_min
 
-    dx = bound2dx(b_min, b_max)
+    dx = bound2dx(b_min, b_max)*0.5
     b_center = b_min .+ dx[1] .+ dx[2]
 
     for i in 0:2^tree.ndim-1

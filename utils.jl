@@ -1,13 +1,26 @@
 function bound2vert(b_min, b_max)
-    dif = b_max - b_min
-    dx = [dif[1], 0]
-    dy = [0, dif[2]]
+    ndim = length(b_min)
+    dx = bound2dx(b_min, b_max)
+    v_lst = Vector{Float64}[]
 
+    for i in 0:(2^ndim-1)
+        add = [0.0 for n in 1:ndim]
+        for dim in 1:ndim
+            if mod(div(i, 2^(dim-1)), 2) == 1
+                add += dx[dim]
+            end
+        end
+        push!(v_lst, b_min + add)
+
+    end
+
+    #=
     v1 = b_min
     v2 = b_min + dx
     v3 = b_min + dx + dy
     v4 = b_min + dy
     v_lst = [v1, v2, v3, v4]
+    =#
     return v_lst
 end
 
@@ -17,7 +30,7 @@ function bound2dx(b_min, b_max)
     dx = Vector{Float64}[]
     for i in 1:ndim
         dx_ = [0.0 for n=1:ndim]
-        dx_[i] = dif[i]*0.5
+        dx_[i] = dif[i]
         push!(dx, dx_)
     end
     return dx
