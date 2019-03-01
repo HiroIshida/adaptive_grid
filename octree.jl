@@ -58,8 +58,9 @@ function split!(tree::Tree, node::Node)
     dif = b_max - b_min
 
     dx = bound2dx(b_min, b_max)*0.5
-    b_center = b_min .+ dx[1] .+ dx[2]
+    b_center = (b_min + b_max)*0.5
 
+    # seems complicated but...
     for i in 0:2^tree.ndim-1
         add = [0.0 for n in 1:tree.ndim]
         for dim in 1:tree.ndim
@@ -120,8 +121,6 @@ function auto_split!(tree::Tree, f, ε) # recursive way
                     return itp_(p_modif[1], p_modif[2], p_modif[3])
                 end
             end
-
-
         end
     end
     recursion(tree.node_root)
@@ -163,56 +162,7 @@ end
 
 
 
-function test_2dim()
-    sigma = 7
-    R(a) = [cos(a) -sin(a);
-            sin(a) cos(a)]
-    function sdf(x, a, b)
-        x = R(-a)*x
-        d = abs.(x) - b
-        tmp = [max(d[1], 0.0), max(d[2], 0.0)]
-        return norm(tmp) + min(max(d[1], d[2]), 0.0)
-    end
 
-    a = pi/10
-    b = [60, 30]
-    f(x) = 0.5*(1 + erf(sdf(x, a, b)/sqrt(2*sigma^2)))
-
-    tree = Tree([-100, -100], [100, 100])
-    auto_split!(tree, f, 0.01)
-    #show(t)
-    
-    for i in 1:1000
-        myrn() = rand()*200 - 100
-        q = [myrn(), myrn()]
-        error = abs(evaluate(tree, q) - f(q))
-        @test error<0.05
-    end
-end
-
-function test_3dim()
-    sigma = 7
-    function sdf(x, b)
-        d = abs.(x) - b
-        tmp = [max(d[1], 0.0), max(d[2], 0.0), max(d[3], 0.0)]
-        return norm(tmp) + min(max(d[1], d[2], d[3]), 0.0)
-    end
-
-    b = [60, 30, 30]
-    f(x) = 0.5*(1 + erf(sdf(x, b)/sqrt(2*sigma^2)))
-
-    tree = Tree([-100, -100, -100], [100, 100, 100])
-    auto_split!(tree, f, 0.01)
-    #show(t)
-    
-    for i in 1:1000
-        myrn() = rand()*200 - 100
-        q = [myrn(), myrn(), myrn()]
-        error = abs(evaluate(tree, q) - f(q))
-        @test error<0.05
-    end
-end
-test_3dim()
 
 
 
