@@ -45,7 +45,7 @@ function form_data_cubic(f_lst, ndim)
         if ndim == 2
             data[idc[1]+1, idc[2]+1] = f_lst[i]
         elseif ndim == 3
-            data[idc[1]+1, idc[2]+1, idx[3]+1] = f_lst[i]
+            data[idc[1]+1, idc[2]+1, idc[3]+1] = f_lst[i]
         end
     end
     return data

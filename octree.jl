@@ -110,10 +110,17 @@ function auto_split!(tree::Tree, f, ε) # recursive way
             data = form_data_cubic(f_lst, tree.ndim)
             itp_ = interpolate(data, BSpline(Linear())) # this raw itp object is useless as it is now
 
+
             node.itp = function itp(p)
                 p_modif = (p - b_min)./(b_max - b_min) .+ 1
-                return itp_(p_modif[1], p_modif[2])
+                # TODO dirty, dirty, dirty!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                if tree.ndim == 2
+                    return itp_(p_modif[1], p_modif[2])
+                else tree.ndim == 3
+                    return itp_(p_modif[1], p_modif[2], p_modif[3])
+                end
             end
+
 
         end
     end
@@ -156,7 +163,7 @@ end
 
 
 
-function main()
+function test_2dim()
     sigma = 7
     R(a) = [cos(a) -sin(a);
             sin(a) cos(a)]
@@ -182,7 +189,30 @@ function main()
         @test error<0.05
     end
 end
-main()
+
+function test_3dim()
+    sigma = 7
+    function sdf(x, b)
+        d = abs.(x) - b
+        tmp = [max(d[1], 0.0), max(d[2], 0.0), max(d[3], 0.0)]
+        return norm(tmp) + min(max(d[1], d[2], d[3]), 0.0)
+    end
+
+    b = [60, 30, 30]
+    f(x) = 0.5*(1 + erf(sdf(x, b)/sqrt(2*sigma^2)))
+
+    tree = Tree([-100, -100, -100], [100, 100, 100])
+    auto_split!(tree, f, 0.01)
+    #show(t)
+    
+    for i in 1:1000
+        myrn() = rand()*200 - 100
+        q = [myrn(), myrn(), myrn()]
+        error = abs(evaluate(tree, q) - f(q))
+        @test error<0.05
+    end
+end
+test_3dim()
 
 
 
