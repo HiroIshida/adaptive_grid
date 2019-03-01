@@ -73,3 +73,15 @@ function whereami(q, b_min, b_max)
     end
     return idx
 end
+
+function grid_points(N_grid, b_min, b_max)
+    # generate points at regular intervals in a cell 
+    # return N_grid^3 points
+    points = Vector{Float64}[]
+    dx = (b_max - b_min)/N_grid
+    for i in 0:N_grid-1, j in 0:N_grid-1, k in 0:N_grid-1
+        p = ([i, j, k] .+ 0.5).*dx + b_min
+        push!(points, p)
+    end
+    return points
+end
