@@ -50,19 +50,17 @@ mutable struct Tree
 end
 
 function split!(tree::Tree, node::Node)
-    # edit node
-    leaves = [i for i in 1:2^(tree.ndim)] .+ tree.N
-    node.id_child = leaves
+    # id of new node 
+    id_child = [i for i in 1:2^(tree.ndim)] .+ tree.N
+    node.id_child = id_child
 
-    # edit tree
+    # generate new nodes
     b_min = node.b_min
     b_max = node.b_max
     dif = b_max - b_min
-
     dx = bound2dx(b_min, b_max)*0.5
     b_center = (b_min + b_max)*0.5
 
-    # seems complicated but...
     for i in 0:2^tree.ndim-1
         add = [0.0 for n in 1:tree.ndim]
         for dim in 1:tree.ndim
@@ -83,14 +81,7 @@ function pred_simplest(node::Node, f, ε)
     data = form_data_cubic(f_lst, ndim)
 
     itp = interpolate(data, BSpline(Linear()))
-
-    # TODO dirty dirty dirty dirty
-    if ndim == 2
-        center_itp = itp(1.5, 1.5) # note: interp starts from 1 
-    elseif ndim == 3
-        center_itp = itp(1.5, 1.5, 1.5)
-    end
-
+    center_itp = (ndim == 2 ? itp(1.5, 1.5) : itp(1.5, 1.5, 1.5)) # TODO
     center_real = f((node.b_max + node.b_min)/2)
     error = abs(center_itp - center_real)
 
@@ -101,7 +92,6 @@ function auto_split!(tree::Tree, f, predicate)
     # recusive split based on the boolean returned by predicate
     # perdicate: Node →  bool
     # interpolation objecet is endowed with each terminal nodes hh
-    
     function recursion(node::Node)
         if predicate(node)
             split!(tree, node)
@@ -116,16 +106,12 @@ function auto_split!(tree::Tree, f, predicate)
             data = form_data_cubic(f_lst, tree.ndim)
             itp_ = interpolate(data, BSpline(Linear())) # this raw itp object is useless as it is now
 
-
-            node.itp = function itp(p)
+            function itp(p)
                 p_modif = (p - b_min)./(b_max - b_min) .+ 1
-                # TODO dirty, dirty, dirty!!
-                if tree.ndim == 2
-                    return itp_(p_modif[1], p_modif[2])
-                else tree.ndim == 3
-                    return itp_(p_modif[1], p_modif[2], p_modif[3])
-                end
+                return (tree.ndim == 2 ? itp_(p_modif[1], p_modif[2]) :
+                        itp_(p_modif[1], p_modif[2], p_modif[3]))
             end
+            node.itp = itp
         end
     end
     recursion(tree.node_root)
@@ -140,29 +126,20 @@ function show(tree::Tree)
             end
         else
             show(node; color=:r)
-            #sleep(0.002)
         end
     end
     recursion(tree.node_root)
     println("finish show")
 end
 
-function search_idx(tree::Tree, q)
+function evaluate(tree::Tree, q)
     node = tree.node_root
     while(true)
-        if node.id_child == nothing
-            return node.id
-        end
+        node.id_child == nothing && return node.itp(q)
         idx = whereami(q, node.b_min, node.b_max)
         id_next = node.id_child[idx]
         node = tree.node[id_next]
     end
-end
-
-function evaluate(tree::Tree, q)
-    id = search_idx(tree, q)
-    node = tree.node[id]
-    return node.itp(q)
 end
 
 
