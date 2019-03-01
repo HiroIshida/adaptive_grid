@@ -56,8 +56,13 @@ function split!(tree::Tree, node::Node)
     dx = bound2dx(b_min, b_max)
     b_center = b_min .+ dx[1] .+ dx[2]
 
-    for j in 0:1, i in 0:1#, k in 0:1
-        add = (i%2)*dx[1] + (j%2)*dx[2]
+    for i in 0:2^tree.ndim-1
+        add = [0.0 for n in 1:tree.ndim]
+        for dim in 1:tree.ndim
+            if mod(div(i, 2^(dim-1)), 2) == 1
+                add += dx[dim]
+            end
+        end
         node_new = Node(tree.N+1, b_min+add, b_center+add)
         push!(tree.node, node_new)
         tree.N += 1
@@ -68,6 +73,7 @@ function needSplitting(node::Node, f)
     v_lst = bound2vert(node.b_min, node.b_max)
     f_lst = [f(v) for v in v_lst]
 
+    # see utils:
     data = [f_lst[1] f_lst[4]; f_lst[2] f_lst[3]]
     itp = interpolate(data, BSpline(Linear()))
 
@@ -148,8 +154,8 @@ t = Tree([-100, -100], [100, 100])
 auto_split!(t, f)
 show(t)
 
-q = [60, 0]
-#println(evaluate(t, q))
+q = [30, -3]
+println(search_idx(t, q))
 
 #=
 function main1()
