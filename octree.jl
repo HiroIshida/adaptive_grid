@@ -76,29 +76,11 @@ function needSplitting(node::Node, f)
     ndim = node.ndim
     v_lst = bound2vert(node.b_min, node.b_max)
     f_lst = [f(v) for v in v_lst]
+    data = form_data_cubic(f_lst, ndim)
 
-    # TODO fix this by using @eval
-    # just for now
-    if ndim == 2
-        data = zeros(2, 2)
-    elseif ndim == 3
-        data = zeros(2, 2, 2)
-    end
-
-    it = itr(ndim)
-    for i = 1:2^ndim
-        idc = it()
-        if ndim == 2
-            data[idc[1]+1, idc[2]+1] = f_lst[i]
-        elseif ndim == 3
-            data[idc[1]+1, idc[2]+1, idx[3]+1] = f_lst[i]
-        end
-    end
-
-    # see utils:
-    #data = [f_lst[1] f_lst[2]; f_lst[3] f_lst[4]]
     itp = interpolate(data, BSpline(Linear()))
 
+    # TODO dirty dirty dirty dirty
     if ndim == 2
         center_itp = itp(1.5, 1.5) # note: interp starts from 1 
     elseif ndim == 3
@@ -106,9 +88,7 @@ function needSplitting(node::Node, f)
     end
 
     center_real = f(0.5*(node.b_max + node.b_min))
-
     error = abs(center_itp - center_real)
-    #println(error)
 
     return ~(error<0.02)
 end
@@ -126,7 +106,7 @@ function auto_split!(tree::Tree, f) # recursive way
             b_max = node.b_max
             v_lst = bound2vert(b_min, b_max)
             f_lst = [f(v) for v in v_lst]
-            data = [f_lst[1] f_lst[4]; f_lst[2] f_lst[3]]
+            data = form_data_cubic(f_lst, tree.ndim)
             itp_ = interpolate(data, BSpline(Linear())) # this raw itp object is useless as it is now
 
             node.itp = function itp(p)
@@ -189,7 +169,7 @@ function sdf(x, a, b)
     return norm(tmp) + min(max(d[1], d[2]), 0.0)
 end
 
-a = pi/10
+a = pi/10 + pi/2
 b = [60, 15]
 f(x) = 0.5*(1 + erf(sdf(x, a, b))/sqrt(2*sigma^2))
 

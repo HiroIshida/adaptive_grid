@@ -29,6 +29,28 @@ function itr(ndim)
 
 end
 
+function form_data_cubic(f_lst, ndim)
+    # TODO fix this by using @eval
+    # just for now
+    if ndim == 2
+        data = zeros(2, 2)
+    elseif ndim == 3
+        data = zeros(2, 2, 2)
+    end
+
+    # TODO dirty dirty dirty dirty
+    it = itr(ndim)
+    for i = 1:2^ndim
+        idc = it()
+        if ndim == 2
+            data[idc[1]+1, idc[2]+1] = f_lst[i]
+        elseif ndim == 3
+            data[idc[1]+1, idc[2]+1, idx[3]+1] = f_lst[i]
+        end
+    end
+    return data
+end
+
 function bound2dx(b_min, b_max)
     ndim = length(b_min)
     dif = b_max - b_min
