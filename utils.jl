@@ -11,15 +11,16 @@ function bound2vert(b_min, b_max)
     return v_lst
 end
 
-function itr()
-    error("under construction")
-    idx = 0
-    function closure()
-        add_x = (mod(idx, 2^1)==1)
-        add_y = (mod(idx, 2^0)==1)
-        idx += 1
+function bound2dx(b_min, b_max)
+    ndim = length(b_min)
+    dif = b_max - b_min
+    dx = Vector{Float64}[]
+    for i in 1:ndim
+        dx_ = [0.0 for n=1:ndim]
+        dx_[i] = dif[i]*0.5
+        push!(dx, dx_)
     end
-    return closure()
+    return dx
 end
 
 

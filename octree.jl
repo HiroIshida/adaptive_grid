@@ -52,12 +52,8 @@ function split!(tree::Tree, node::Node)
     b_min = node.b_min
     b_max = node.b_max
     dif = b_max - b_min
-    dx = Vector{Float64}[]
-    for i in 1:tree.ndim
-        dx_ = [0.0 for n=1:tree.ndim]
-        dx_[i] = dif[i]*0.5
-        push!(dx, dx_)
-    end
+
+    dx = bound2dx(b_min, b_max)
     b_center = b_min .+ dx[1] .+ dx[2]
 
     for j in 0:1, i in 0:1#, k in 0:1
