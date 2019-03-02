@@ -1,5 +1,5 @@
 using LinearAlgebra
-using Interpolations
+import Interpolations
 using SpecialFunctions
 using PyPlot
 using Test
@@ -20,18 +20,30 @@ mutable struct Node
 end
 
 function show(node::Node; color=:r)
-    v_lst_ = bound2vert(node.b_min, node.b_max)
-    v_lst = [v_lst_[1], v_lst_[2], v_lst_[4], v_lst_[3]]
-    for n = 1:4
-        if n!=4
-            x = [v_lst[n][1], v_lst[n+1][1]]
-            y = [v_lst[n][2], v_lst[n+1][2]]
-        else
-            x = [v_lst[4][1], v_lst[1][1]]
-            y = [v_lst[4][2], v_lst[1][2]]
+    v_lst = bound2vert(node.b_min, node.b_max)
+    if node.ndim == 2
+        lst_pair = [[1, 2], [2, 4], [4, 3], [3, 1]]
+        for pair in lst_pair 
+            idx1 = pair[1]; idx2 = pair[2]
+            x = [v_lst[idx1][1], v_lst[idx2][1]]
+            y = [v_lst[idx1][2], v_lst[idx2][2]]
+            PyPlot.plot(x, y, color)
         end
-        PyPlot.plot(x, y, color)
+    elseif node.ndim == 3
+        lst_pair = [[1, 3], [3, 4], [4, 2], [2, 1], 
+                    [1, 5], [2, 6], [4, 8], [3, 7],
+                    [5, 7], [7, 8], [8, 6], [6, 5]]
+        for pair in lst_pair 
+            idx1 = pair[1]; idx2 = pair[2]
+            x = [v_lst[idx1][1], v_lst[idx2][1]]
+            y = [v_lst[idx1][2], v_lst[idx2][2]]
+            z = [v_lst[idx1][3], v_lst[idx2][3]]
+            PyPlot.plot3D(x, y, z, color)
+        end
+    else
+        error("is not supported")
     end
+
 end
 
 mutable struct Tree
@@ -150,13 +162,4 @@ function evaluate(tree::Tree, q)
         node = tree.node[id_next]
     end
 end
-
-
-
-
-
-
-
-
-    
 

@@ -44,12 +44,13 @@ function test_3dim(tol)
     b = [60, 30, 30]
     f(x) = 0.5*(1 + erf(sdf(x, b)/sqrt(2*sigma^2)))
     n_grid = 1
+    tol = 0.1
     predicate(node::Node) = pred_standard(node, f, tol, n_grid)
 
 
     tree = Tree([-100, -100, -100], [100, 100, 100])
     auto_split!(tree, f, predicate)
-    #show(t)
+    #show(tree)
     
     isValid = true
     for i in 1:1000
@@ -65,4 +66,4 @@ end
 
 tol = 0.05
 test_2dim(tol)
-#test_3dim(tol)
+test_3dim(tol)
