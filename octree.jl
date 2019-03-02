@@ -81,26 +81,20 @@ function pred_standard(node::Node, f, ε, n_grid)
     data = form_data_cubic(f_lst, ndim)
     itp = interpolate(data, BSpline(Linear()))
 
+    # evaluate the interpolation error for many points in the cell 
+    # and only care about maximum error 
     points_eval = grid_points(n_grid, node.b_min, node.b_max)
-
-    # eval real 
-    sum_real = 0.0
-    for p in points_eval
-        sum_real += f(p)
-    end
-    eval_real = sum_real/n_grid^3
-
-    # eval itp
-    sum_itp = 0.0
+    max_error = -Inf
     for p in points_eval
         p_reg = (p - node.b_min)./(node.b_max - node.b_min) .+ 1
-        sum_itp += (ndim == 2 ? itp(p_reg[1], p_reg[2]) : itp(p_reg[1], p_reg[2], p_reg[3]))
-        # TODO
+        val_itp = (ndim == 2 ? itp(p_reg[1], p_reg[2]) : itp(p_reg[1], p_reg[2], p_reg[3]))
+        val_real = f(p)
+        error = abs(val_real - val_itp)
+        if max_error < error
+            max_error = error
+        end
     end
-    eval_itp = sum_itp/n_grid^3
-
-    error = abs(eval_itp - eval_real)
-    return ~(error<ε)
+    return ~(max_error<ε)
 end
 
 function auto_split!(tree::Tree, f, predicate) 
