@@ -74,31 +74,13 @@ function split!(tree::Tree, node::Node)
     end
 end
 
-function pred_simplest(node::Node, f, ε)
+function pred_standard(node::Node, f, ε, n_grid)
     ndim = node.ndim
     v_lst = bound2vert(node.b_min, node.b_max)
     f_lst = [f(v) for v in v_lst]
     data = form_data_cubic(f_lst, ndim)
-
     itp = interpolate(data, BSpline(Linear()))
-    center_itp = (ndim == 2 ? itp(1.5, 1.5) : itp(1.5, 1.5, 1.5)) # TODO
-    center_real = f((node.b_max + node.b_min)/2)
-    error = abs(center_itp - center_real)
 
-    return ~(error<ε)
-end
-
-function pred_standard(node::Node, f, ε)
-    ndim = node.ndim
-    v_lst = bound2vert(node.b_min, node.b_max)
-    f_lst = [f(v) for v in v_lst]
-    data = form_data_cubic(f_lst, ndim)
-
-    itp = interpolate(data, BSpline(Linear()))
-    ndim == 2 && error("under construction!")
-
-    # main 
-    n_grid = 4
     points_eval = grid_points(n_grid, node.b_min, node.b_max)
 
     # eval real 
@@ -112,7 +94,8 @@ function pred_standard(node::Node, f, ε)
     sum_itp = 0.0
     for p in points_eval
         p_reg = (p - node.b_min)./(node.b_max - node.b_min) .+ 1
-        sum_itp += f(p_reg)
+        sum_itp += (ndim == 2 ? itp(p_reg[1], p_reg[2]) : itp(p_reg[1], p_reg[2], p_reg[3]))
+        # TODO
     end
     eval_itp = sum_itp/n_grid^3
 
