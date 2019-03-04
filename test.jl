@@ -18,8 +18,10 @@ function test_2dim(tol)
     n_grid = 20
     predicate(node::Node) = pred_standard(node, f, tol, n_grid, Linear())
 
-    tree = Tree([-100, -100], [100, 100])
-    auto_split!(tree, f, predicate)
+    tree = Tree([-100, -100], [100, 100], f)
+    auto_split!(tree, predicate)
+    vertex_reduction!(tree)
+    #show(tree)
     
     isValid = true
     for i in 1:1000
@@ -30,7 +32,6 @@ function test_2dim(tol)
             isValid *= false
         end
     end
-    show(tree)
     return isValid
 end
 
@@ -45,13 +46,12 @@ function test_3dim(tol)
     b = [60, 30, 30]
     f(x) = 0.5*(1 + erf(sdf(x, b)/sqrt(2*sigma^2)))
     n_grid = 1
-    tol = 0.1
     predicate(node::Node) = pred_standard(node, f, tol, n_grid, Linear())
 
 
-    tree = Tree([-100, -100, -100], [100, 100, 100])
-    auto_split!(tree, f, predicate)
-    #show(tree)
+    tree = Tree([-100, -100, -100], [100, 100, 100], f)
+    auto_split!(tree, predicate)
+    vertex_reduction!(tree)
     
     isValid = true
     for i in 1:1000
@@ -65,6 +65,6 @@ function test_3dim(tol)
     return isValid
 end
 
-tol = 0.05
+tol = 0.1
 @test test_2dim(tol)
 @test test_3dim(tol)
