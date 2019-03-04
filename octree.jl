@@ -132,7 +132,7 @@ function auto_split!(tree::Tree, predicate)
             v_lst = bound2vert(b_min, b_max)
             f_lst = [tree.func(v) for v in v_lst]
             data = form_data_cubic(f_lst, tree.ndim)
-            itp_ = interpolate(data, BSpline(Linear())) # this raw itp object is useless as it is now
+            itp_ = interpolate(data, BSpline(Linear())) 
 
             function itp(p)
                 p_modif = (p - b_min)./(b_max - b_min) .+ 1
@@ -193,12 +193,34 @@ end
 function evaluate(tree::Tree, q)
     node = tree.node_root
     while(true)
+        if node.id_child == nothing
+            data_itp = form_data_cubic(tree.data[node.id_vert], tree.ndim)
+            itp = interpolate(data_itp, BSpline(Linear())) #raw
+            q_modif = (q - node.b_min)./(node.b_max - node.b_min) .+ 1
+            if tree.ndim == 2
+                return itp(q_modif[1], q_modif[2])
+            elseif tree.ndim == 3
+                return itp(q_modif[1], q_modif[2], q_modif[3])
+            else
+                error("not supported")
+            end
+        end
+        idx = whereami(q, node.b_min, node.b_max)
+        id_next = node.id_child[idx]
+        node = tree.node[id_next]
+    end
+end
+
+function evaluate_(tree::Tree, q)
+    node = tree.node_root
+    while(true)
         node.id_child == nothing && return node.itp(q)
         idx = whereami(q, node.b_min, node.b_max)
         id_next = node.id_child[idx]
         node = tree.node[id_next]
     end
 end
+
 
 function pred_standard(node::Node, f, ε, n_grid, itp_method)
     # choose interpolation method: itp_method
@@ -226,3 +248,4 @@ function pred_standard(node::Node, f, ε, n_grid, itp_method)
     end
     return ~(max_error<ε)
 end
+
