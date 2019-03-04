@@ -30,6 +30,8 @@ function test_2dim(tol)
             isValid *= false
         end
     end
+    println(tree.N_node)
+    println(tree.N_vert)
     return isValid
 end
 

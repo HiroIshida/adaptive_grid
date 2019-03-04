@@ -104,6 +104,7 @@ function split!(tree::Tree, node::Node)
         ## dangerous: complicated and potentially buggy
         for v in vertices_new
             push!(tree.vertex, v)
+            push!(tree.data, tree.func(v))
         end
         id_vert = [tree.N_vert + i for i in 1:2^tree.ndim]
         node_new = Node(tree.N_node+1, b_min+add, b_center+add, id_vert)
