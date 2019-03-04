@@ -98,7 +98,7 @@ function split!(tree::Tree, node::Node)
         # edit new node and corresponding vertex in tree
         id_new = tree.N_node+1
         b_min_new = b_min+add
-        b_max_new = b_max+add
+        b_max_new = b_center+add # not b_max + add
         vertices_new = bound2vert(b_min_new, b_max_new)
 
         ## dangerous: complicated and potentially buggy
@@ -107,7 +107,7 @@ function split!(tree::Tree, node::Node)
             push!(tree.data, tree.func(v))
         end
         id_vert = [tree.N_vert + i for i in 1:2^tree.ndim]
-        node_new = Node(tree.N_node+1, b_min+add, b_center+add, id_vert)
+        node_new = Node(tree.N_node+1, b_min_new, b_max_new, id_vert)
         push!(tree.node, node_new)
         tree.N_vert += 2^tree.ndim
         tree.N_node += 1
@@ -148,7 +148,6 @@ end
 
 function vertex_reduction!(tree::Tree)
     println("start vertex reductoin")
-    println(tree.N_vert)
 
     # build kdtree
     vert_mat = zeros(tree.ndim, tree.N_vert)
@@ -159,7 +158,7 @@ function vertex_reduction!(tree::Tree)
             vert_mat[:, n] = [tree.vertex[n][1], tree.vertex[n][2], tree.vertex[n][3]]
         end
     end
-    kdtree = KDTree(vert_mat, leafsize=10)
+    kdtree = KDTree(vert_mat, leafsize=20)
 
     # first re-label the indices.
     # for example if S1 = [1, 4, 6], S2 = [2, 3, 7], S3 =[5, 8] are duplicated
@@ -177,22 +176,16 @@ function vertex_reduction!(tree::Tree)
         map[id] = id_new
         push!(vertex_new, tree.vertex[id])
         push!(data_new, tree.data[id])
-        println("query")
-        println(id)
         id_depuli_lst = inrange(kdtree, tree.vertex[id], ε, true)
-        println(id_depuli_lst)
         for id_depuli in id_depuli_lst
             map[id_depuli] = id_new
             id_lst = setdiff(id_lst, id_depuli)
         end
         id_new += 1
-        println(map)
-        sleep(0.5)
     end
     tree.N_vert = length(vertex_new)
     tree.vertex = vertex_new
     tree.data = data_new
-    println(tree.N_vert)
 
     function recursion(node::Node)
         if node.id_child!=nothing
