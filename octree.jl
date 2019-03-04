@@ -146,43 +146,20 @@ function auto_split!(tree::Tree, predicate)
     println("finish autosplit")
 end
 
-function extract_all_vertices(tree::Tree)
-    # extract
-    vertex_lst = Vector{Float64}[]
-    function recursion(node::Node)
-        if node.id_child!=nothing
-            for id in node.id_child
-                recursion(tree.node[id])
-            end
-        else
-            v_lst = bound2vert(node.b_min, node.b_max)
-            for v in v_lst
-                push!(vertex_lst, v)
-            end
-        end
-    end
-    recursion(tree.node_root)
-
-    # convert them to matrix form
-    N_vert = length(vertex_lst)
-    vertex_mat = zeros(tree.ndim, N_vert) 
-    for n in 1:N_vert
-        if tree.ndim == 2
-            vertex_mat[:, n] = [vertex_lst[n][1], vertex_lst[n][2]]
-        elseif tree.ndim == 3
-            vertex_mat[:, n] = [vertex_lst[n][1], vertex_lst[n][2], vertex_lst[n][3]]
-        end
-    end
-    return vertex_mat
-end
-
 function vertex_reduction!(tree::Tree)
     println("start vertex reductoin")
     println(tree.N_vert)
 
-    
-    extracted_vectors = extract_all_vertices(tree)
-    kdtree = KDTree(extracted_vectors, leafsize=10)
+    # build kdtree
+    vert_mat = zeros(tree.ndim, tree.N_vert)
+    for n in 1:tree.N_vert
+        if tree.ndim == 2
+            vert_mat[:, n] = [tree.vertex[n][1], tree.vertex[n][2]]
+        elseif tree.ndim == 3
+            vert_mat[:, n] = [tree.vertex[n][1], tree.vertex[n][2], tree.vertex[n][3]]
+        end
+    end
+    kdtree = KDTree(vert_mat, leafsize=10)
 
     # first re-label the indices.
     # for example if S1 = [1, 4, 6], S2 = [2, 3, 7], S3 =[5, 8] are duplicated
@@ -202,18 +179,13 @@ function vertex_reduction!(tree::Tree)
         push!(data_new, tree.data[id])
         println("query")
         println(id)
-        println(tree.vertex[id])
-        println(extracted_vectors[:, id])
-        id_depuli_lst = inrange(kdtree, tree.vertex[id]+rand(2)*0.1*ε, ε, true)
+        id_depuli_lst = inrange(kdtree, tree.vertex[id], ε, true)
         println(id_depuli_lst)
         for id_depuli in id_depuli_lst
             map[id_depuli] = id_new
             id_lst = setdiff(id_lst, id_depuli)
         end
-        println("\n")
         id_new += 1
-        println(id_lst)
-        println("\n")
         println(map)
         sleep(0.5)
     end
