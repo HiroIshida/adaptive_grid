@@ -86,28 +86,6 @@ function split!(tree::Tree, node::Node)
     end
 end
 
-function pred_standard(node::Node, f, ε, n_grid)
-    ndim = node.ndim
-    v_lst = bound2vert(node.b_min, node.b_max)
-    f_lst = [f(v) for v in v_lst]
-    data = form_data_cubic(f_lst, ndim)
-    itp = interpolate(data, BSpline(Linear()))
-
-    # evaluate the interpolation error for many points in the cell 
-    # and only care about maximum error 
-    points_eval = grid_points(n_grid, node.b_min, node.b_max)
-    max_error = -Inf
-    for p in points_eval
-        p_reg = (p - node.b_min)./(node.b_max - node.b_min) .+ 1
-        val_itp = (ndim == 2 ? itp(p_reg[1], p_reg[2]) : itp(p_reg[1], p_reg[2], p_reg[3]))
-        val_real = f(p)
-        error = abs(val_real - val_itp)
-        if max_error < error
-            max_error = error
-        end
-    end
-    return ~(max_error<ε)
-end
 
 function auto_split!(tree::Tree, f, predicate) 
     # recusive split based on the boolean returned by predicate
@@ -163,3 +141,29 @@ function evaluate(tree::Tree, q)
     end
 end
 
+function pred_standard(node::Node, f, ε, n_grid, itp_method)
+    # choose interpolation method: itp_method
+    # curretnly available methods are "Linear()" and "Constant()"
+    # apparently, if you choose "Constant", much more cells are required.
+    
+    ndim = node.ndim
+    v_lst = bound2vert(node.b_min, node.b_max)
+    f_lst = [f(v) for v in v_lst]
+    data = form_data_cubic(f_lst, ndim)
+    itp = interpolate(data, BSpline(itp_method))
+
+    # evaluate the interpolation error for many points in the cell 
+    # and only care about maximum error 
+    points_eval = grid_points(n_grid, node.b_min, node.b_max)
+    max_error = -Inf
+    for p in points_eval
+        p_reg = (p - node.b_min)./(node.b_max - node.b_min) .+ 1
+        val_itp = (ndim == 2 ? itp(p_reg[1], p_reg[2]) : itp(p_reg[1], p_reg[2], p_reg[3]))
+        val_real = f(p)
+        error = abs(val_real - val_itp)
+        if max_error < error
+            max_error = error
+        end
+    end
+    return ~(max_error<ε)
+end
