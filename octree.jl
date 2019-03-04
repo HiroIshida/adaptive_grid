@@ -4,6 +4,9 @@ using SpecialFunctions
 using PyPlot
 using Test
 import Base: show
+
+push!(LOAD_PATH, "./NearestNeighbors.jl")
+using NearestNeighbors
 include("utils.jl")
 
 mutable struct Node
@@ -115,6 +118,36 @@ function auto_split!(tree::Tree, f, predicate)
     end
     recursion(tree.node_root)
     println("finish autosplit")
+end
+
+function extract_all_vertices(tree::Tree)
+    # extract
+    data_ = Vector{Float64}[]
+    function recursion(node::Node)
+        if node.id_child!=nothing
+            for id in node.id_child
+                recursion(tree.node[id])
+            end
+        else
+            v_lst = bound2vert(node.b_min, node.b_max)
+            for v in v_lst
+                push!(data_, v)
+            end
+        end
+    end
+    recursion(tree.node_root)
+
+    # convert them to matrix form
+    N_vert = length(data_)
+    data = zeros(tree.ndim, N_vert) 
+    for n in 1:N_vert
+        if tree.ndim == 2
+            data[:, n] = [data_[n][1], data_[n][2]]
+        elseif tree.ndim == 3
+            data[:, n] = [data_[n][1], data_[n][2], data_[n][3]]
+        end
+    end
+    return data
 end
 
 function show(tree::Tree)
