@@ -30,7 +30,7 @@ function test_2dim(tol)
             isValid *= false
         end
     end
-    show(tree)
+    println(tree.N)
     return isValid
 end
 
@@ -65,6 +65,6 @@ function test_3dim(tol)
     return isValid
 end
 
-tol = 0.05
+tol = 0.01
 @test test_2dim(tol)
 @test test_3dim(tol)
