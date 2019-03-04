@@ -18,8 +18,8 @@ function test_2dim(tol)
     n_grid = 20
     predicate(node::Node) = pred_standard(node, f, tol, n_grid, Linear())
 
-    tree = Tree([-100, -100], [100, 100])
-    auto_split!(tree, f, predicate)
+    tree = Tree([-100, -100], [100, 100], f)
+    auto_split!(tree, predicate)
     
     isValid = true
     for i in 1:1000
@@ -48,8 +48,8 @@ function test_3dim(tol)
     predicate(node::Node) = pred_standard(node, f, tol, n_grid, Linear())
 
 
-    tree = Tree([-100, -100, -100], [100, 100, 100])
-    auto_split!(tree, f, predicate)
+    tree = Tree([-100, -100, -100], [100, 100, 100], f)
+    auto_split!(tree, predicate)
     #show(tree)
     
     isValid = true

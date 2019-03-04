@@ -60,15 +60,18 @@ mutable struct Tree
     node::Vector{Node}
     node_root::Node
     vertex::Vector{Vertex}
+    data::Vector{Float64} # data stored in vertex
+    func#function
 
-    function Tree(b_min, b_max)
+    function Tree(b_min, b_max, func)
         N_node = 1
         N_vert = 4
         ndim = length(b_min)
         v_lst = bound2vert(b_min, b_max)
+        f_lst = [func(v) for v in v_lst]
         id_vert = [i for i in 1:2^ndim]
         node_root = Node(N_node, b_min, b_max, id_vert)
-        new(N_node, N_vert, ndim, [node_root], node_root, v_lst)
+        new(N_node, N_vert, ndim, [node_root], node_root, v_lst, f_lst, func)
     end
 end
 
@@ -112,7 +115,7 @@ function split!(tree::Tree, node::Node)
 end
 
 
-function auto_split!(tree::Tree, f, predicate) 
+function auto_split!(tree::Tree, predicate) 
     # recusive split based on the boolean returned by predicate
     # perdicate: Node →  bool
     # interpolation objecet is endowed with each terminal nodes hh
@@ -126,7 +129,7 @@ function auto_split!(tree::Tree, f, predicate)
             b_min = node.b_min
             b_max = node.b_max
             v_lst = bound2vert(b_min, b_max)
-            f_lst = [f(v) for v in v_lst]
+            f_lst = [tree.func(v) for v in v_lst]
             data = form_data_cubic(f_lst, tree.ndim)
             itp_ = interpolate(data, BSpline(Linear())) # this raw itp object is useless as it is now
 
