@@ -9,16 +9,19 @@ push!(LOAD_PATH, "./NearestNeighbors.jl")
 using NearestNeighbors
 include("utils.jl")
 
+const Vertex = Vector{Float64}
+
 mutable struct Node
     id::Int
     ndim::Int
     b_min
     b_max
+    id_vert::Vector{Int}
     id_child::Union{Vector{Int}, Nothing}
     itp # type?
-    function Node(id, b_min, b_max)
+    function Node(id, b_min, b_max, id_vert)
         ndim = length(b_min)
-        new(id, ndim, b_min, b_max, nothing, nothing)
+        new(id, ndim, b_min, b_max, id_vert, nothing, nothing)
     end
 end
 
@@ -51,22 +54,27 @@ end
 
 mutable struct Tree
     # member variable
-    N::Int
+    N_node::Int
+    N_vert::Int
     ndim::Int
     node::Vector{Node}
     node_root::Node
+    vertex::Vector{Vertex}
 
     function Tree(b_min, b_max)
-        id_node = 1
+        N_node = 1
+        N_vert = 4
         ndim = length(b_min)
-        node_root = Node(id_node, b_min, b_max)
-        new(id_node, ndim, [node_root], node_root)
+        v_lst = bound2vert(b_min, b_max)
+        id_vert = [i for i in 1:2^ndim]
+        node_root = Node(N_node, b_min, b_max, id_vert)
+        new(N_node, N_vert, ndim, [node_root], node_root, v_lst)
     end
 end
 
 function split!(tree::Tree, node::Node)
     # id of new node 
-    id_child = [i for i in 1:2^(tree.ndim)] .+ tree.N
+    id_child = [i for i in 1:2^(tree.ndim)] .+ tree.N_node
     node.id_child = id_child
 
     # generate new nodes
@@ -83,9 +91,23 @@ function split!(tree::Tree, node::Node)
                 add += dx[dim]
             end
         end
-        node_new = Node(tree.N+1, b_min+add, b_center+add)
+
+        # edit new node and corresponding vertex in tree
+        id_new = tree.N_node+1
+        b_min_new = b_min+add
+        b_max_new = b_max+add
+        vertices_new = bound2vert(b_min_new, b_max_new)
+
+        ## dangerous: complicated and potentially buggy
+        for v in vertices_new
+            push!(tree.vertex, v)
+        end
+        id_vert = [tree.N_vert + i for i in 1:2^tree.ndim]
+        node_new = Node(tree.N_node+1, b_min+add, b_center+add, id_vert)
         push!(tree.node, node_new)
-        tree.N += 1
+        tree.N_vert += 2^tree.ndim
+        tree.N_node += 1
+        ## dangerous
     end
 end
 
