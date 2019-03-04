@@ -20,6 +20,8 @@ function test_2dim(tol)
 
     tree = Tree([-100, -100], [100, 100], f)
     auto_split!(tree, predicate)
+    vertex_reduction!(tree)
+    show(tree)
     
     isValid = true
     for i in 1:1000
@@ -30,9 +32,7 @@ function test_2dim(tol)
             isValid *= false
         end
     end
-    println(tree.N_node)
-    println(tree.N_vert)
-    return isValid
+    return tree
 end
 
 function test_3dim(tol)
@@ -66,6 +66,7 @@ function test_3dim(tol)
     return isValid
 end
 
-tol = 0.01
-test_2dim(tol)
+#tol = 0.01
+tol = 0.8
+tree = test_2dim(tol)
 test_3dim(tol)

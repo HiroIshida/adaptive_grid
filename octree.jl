@@ -148,7 +148,7 @@ end
 
 function extract_all_vertices(tree::Tree)
     # extract
-    data_ = Vector{Float64}[]
+    vertex_lst = Vector{Float64}[]
     function recursion(node::Node)
         if node.id_child!=nothing
             for id in node.id_child
@@ -157,23 +157,82 @@ function extract_all_vertices(tree::Tree)
         else
             v_lst = bound2vert(node.b_min, node.b_max)
             for v in v_lst
-                push!(data_, v)
+                push!(vertex_lst, v)
             end
         end
     end
     recursion(tree.node_root)
 
     # convert them to matrix form
-    N_vert = length(data_)
-    data = zeros(tree.ndim, N_vert) 
+    N_vert = length(vertex_lst)
+    vertex_mat = zeros(tree.ndim, N_vert) 
     for n in 1:N_vert
         if tree.ndim == 2
-            data[:, n] = [data_[n][1], data_[n][2]]
+            vertex_mat[:, n] = [vertex_lst[n][1], vertex_lst[n][2]]
         elseif tree.ndim == 3
-            data[:, n] = [data_[n][1], data_[n][2], data_[n][3]]
+            vertex_mat[:, n] = [vertex_lst[n][1], vertex_lst[n][2], vertex_lst[n][3]]
         end
     end
-    return data
+    return vertex_mat
+end
+
+function vertex_reduction!(tree::Tree)
+    println("start vertex reductoin")
+    println(tree.N_vert)
+
+    
+    extracted_vectors = extract_all_vertices(tree)
+    kdtree = KDTree(extracted_vectors, leafsize=10)
+
+    # first re-label the indices.
+    # for example if S1 = [1, 4, 6], S2 = [2, 3, 7], S3 =[5, 8] are duplicated
+    # label them i1=1 i2=2 i3=3. Then, make a map from S -> i
+    # potentially dangerous operation
+    vertex_new = Vertex[]
+    data_new = Float64[]
+    id_lst = [i for i in 1:tree.N_vert]
+    map = [-1 for i in 1:tree.N_vert] # -1 represetnts unvisited
+    ε = 1e-4
+    id_new = 1
+    while(length(id_lst)>0)
+        id = id_lst[1] # pop
+        id_lst = setdiff(id_lst, id)
+        map[id] = id_new
+        push!(vertex_new, tree.vertex[id])
+        push!(data_new, tree.data[id])
+        println("query")
+        println(id)
+        println(tree.vertex[id])
+        println(extracted_vectors[:, id])
+        id_depuli_lst = inrange(kdtree, tree.vertex[id]+rand(2)*0.1*ε, ε, true)
+        println(id_depuli_lst)
+        for id_depuli in id_depuli_lst
+            map[id_depuli] = id_new
+            id_lst = setdiff(id_lst, id_depuli)
+        end
+        println("\n")
+        id_new += 1
+        println(id_lst)
+        println("\n")
+        println(map)
+        sleep(0.5)
+    end
+    tree.N_vert = length(vertex_new)
+    tree.vertex = vertex_new
+    tree.data = data_new
+    println(tree.N_vert)
+
+    function recursion(node::Node)
+        if node.id_child!=nothing
+            for id in node.id_child
+                recursion(tree.node[id])
+            end
+        else
+            node.id_vert = [map[i] for i in node.id_vert]
+        end
+    end
+    recursion(tree.node_root)
+    println("end vertex reduction")
 end
 
 function show(tree::Tree)
