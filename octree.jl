@@ -174,6 +174,13 @@ function vertex_reduction!(tree::Tree)
     println("end vertex reduction")
 end
 
+function find_near_vertices(tree::Tree, q, r)
+    # return ids of near vertex
+    ids = inrange(tree.kdtree, q, r, true)
+    return ids
+end
+
+
 function show(tree::Tree)
     function recursion(node::Node)
         if node.id_child!=nothing
