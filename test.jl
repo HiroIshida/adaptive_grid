@@ -1,5 +1,6 @@
 using Interpolations
 using Test
+using JLD
 include("octree.jl")
 
 function test_2dim(tol)
@@ -36,7 +37,7 @@ function test_2dim(tol)
     return isValid
 end
 
-function test_3dim(tol)
+function test_3dim(tol; use_cache=false)
     sigma = 7
     function sdf(x, b)
         d = abs.(x) - b
@@ -52,7 +53,13 @@ function test_3dim(tol)
 
     tree = Tree([-100, -100, -100], [100, 100, 100], f)
     auto_split!(tree, predicate)
-    remove_duplicated_vertex!(tree)
+    if use_cache
+        cache = load("test_cache.jld")
+        remove_duplicated_vertex!(tree; map_cache=cache["map"], ids_cache=cache["ids"])
+    else
+        map, valid_ids = remove_duplicated_vertex!(tree)
+        save("test_cache.jld", "map", map, "ids", valid_ids)
+    end
     
     isValid = true
     for i in 1:1000
@@ -66,6 +73,11 @@ function test_3dim(tol)
     return isValid
 end
 
+
+
+
+
 tol = 0.1
 @test test_2dim(tol)
-@test test_3dim(tol)
+@test @time test_3dim(tol; use_cache=false)
+@test @time test_3dim(tol; use_cache=true)

@@ -44,8 +44,16 @@ function vertex_reduction(vertex_lst)
     ε = 1e-4
     id_new = 1
     while(length(id_lst)>0)
+
         id = id_lst[1] # pop
         push!(valid_ids, id)
+
+        # just display
+        # just display
+        percentage = id/N_vert*100
+        println(percentage)
+        # just display
+        # just display
         
         id_lst = setdiff(id_lst, id)
         map[id] = id_new

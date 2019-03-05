@@ -128,14 +128,19 @@ function auto_split!(tree::Tree, predicate)
     println("finish autosplit")
 end
 
-function remove_duplicated_vertex!(tree::Tree)
+function remove_duplicated_vertex!(tree::Tree; map_cache=nothing, ids_cache=nothing)
     println("start vertex reductoin")
-
     # first re-label the indices.
     # for example if S1 = [1, 4, 6], S2 = [2, 3, 7], S3 =[5, 8] are duplicated
     # label them i1=1 i2=2 i3=3. Then, make a map from S -> i
     # potentially dangerous operation
-    map, valid_ids = vertex_reduction(tree.vertex)
+
+    if (map_cache==nothing) | (ids_cache==nothing) 
+        map, valid_ids = vertex_reduction(tree.vertex)
+    else # if use cache
+        map = map_cache
+        valid_ids = ids_cache
+    end
 
     vertex_new = Vertex[]
     data_new = Float64[]
@@ -158,6 +163,7 @@ function remove_duplicated_vertex!(tree::Tree)
     end
     recursion(tree.node_root)
     println("end vertex reduction")
+    return map, valid_ids
 end
 
 function show(tree::Tree)
