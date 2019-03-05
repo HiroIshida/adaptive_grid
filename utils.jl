@@ -16,6 +16,23 @@ function bound2vert(b_min, b_max)
     return v_lst
 end
 
+function build_ketree(vertex_lst)
+    ndim = length(vertex_lst[1])
+    N_vert = length(vertex_lst)
+    
+    # convert vector of vertex to 2dim array (mat) 
+    vert_mat = zeros(ndim, N_vert)
+    for n in 1:N_vert
+        if ndim == 2
+            vert_mat[:, n] = [vertex_lst[n][1], vertex_lst[n][2]]
+        elseif ndim == 3
+            vert_mat[:, n] = [vertex_lst[n][1], vertex_lst[n][2], vertex_lst[n][3]]
+        end
+    end
+    kdtree = KDTree(vert_mat, leafsize=20)
+    return kdtree
+end
+
 function itr(ndim)
     i = 0
     return function closure()

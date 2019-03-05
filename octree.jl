@@ -4,8 +4,6 @@ using SpecialFunctions
 using PyPlot
 using Test
 import Base: show
-
-push!(LOAD_PATH, "./NearestNeighbors.jl")
 using NearestNeighbors
 include("utils.jl")
 
@@ -49,7 +47,6 @@ function show(node::Node; color=:r)
     else
         error("is not supported")
     end
-
 end
 
 mutable struct Tree
@@ -62,16 +59,17 @@ mutable struct Tree
     vertex::Vector{Vertex}
     data::Vector{Float64} # data stored in vertex
     func#function
+    kdtree::Union{KDTree, Nothing}
 
     function Tree(b_min, b_max, func)
-        N_node = 1
-        N_vert = 4
         ndim = length(b_min)
+        N_node = 1
+        N_vert = 2^ndim
         v_lst = bound2vert(b_min, b_max)
         f_lst = [func(v) for v in v_lst]
         id_vert = [i for i in 1:2^ndim]
         node_root = Node(N_node, b_min, b_max, id_vert)
-        new(N_node, N_vert, ndim, [node_root], node_root, v_lst, f_lst, func)
+        new(N_node, N_vert, ndim, [node_root], node_root, v_lst, f_lst, func, nothing)
     end
 end
 
@@ -143,22 +141,13 @@ function auto_split!(tree::Tree, predicate)
         end
     end
     recursion(tree.node_root)
+
     println("finish autosplit")
 end
 
 function vertex_reduction!(tree::Tree)
     println("start vertex reductoin")
-
-    # build kdtree
-    vert_mat = zeros(tree.ndim, tree.N_vert)
-    for n in 1:tree.N_vert
-        if tree.ndim == 2
-            vert_mat[:, n] = [tree.vertex[n][1], tree.vertex[n][2]]
-        elseif tree.ndim == 3
-            vert_mat[:, n] = [tree.vertex[n][1], tree.vertex[n][2], tree.vertex[n][3]]
-        end
-    end
-    kdtree = KDTree(vert_mat, leafsize=20)
+    kdtree = build_ketree(tree.vertex)
 
     # first re-label the indices.
     # for example if S1 = [1, 4, 6], S2 = [2, 3, 7], S3 =[5, 8] are duplicated

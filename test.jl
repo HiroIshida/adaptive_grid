@@ -66,5 +66,5 @@ function test_3dim(tol)
 end
 
 tol = 0.1
-@test test_2dim(tol)
-@test test_3dim(tol)
+test_2dim(tol)
+test_3dim(tol)
