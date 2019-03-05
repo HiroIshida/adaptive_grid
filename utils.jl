@@ -16,7 +16,7 @@ function bound2vert(b_min, b_max)
     return v_lst
 end
 
-function build_ketree(vertex_lst)
+function build_kdtree(vertex_lst)
     ndim = length(vertex_lst[1])
     N_vert = length(vertex_lst)
     
@@ -35,7 +35,7 @@ end
 
 function vertex_reduction(vertex_lst)
     N_vert = length(vertex_lst)
-    kdtree = build_ketree(vertex_lst)
+    kdtree = build_kdtree(vertex_lst)
     id_lst = [i for i in 1:N_vert]
 
     map = [-1 for i in 1:N_vert] # -1 represetnts unvisited
