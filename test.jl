@@ -1,4 +1,5 @@
 using Interpolations
+using Test
 include("octree.jl")
 
 function test_2dim(tol)
@@ -66,5 +67,5 @@ function test_3dim(tol)
 end
 
 tol = 0.1
-test_2dim(tol)
-test_3dim(tol)
+@test test_2dim(tol)
+@test test_3dim(tol)

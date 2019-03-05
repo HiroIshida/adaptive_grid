@@ -2,7 +2,6 @@ using LinearAlgebra
 import Interpolations
 using SpecialFunctions
 using PyPlot
-using Test
 import Base: show
 using NearestNeighbors
 include("utils.jl")
@@ -141,13 +140,12 @@ function auto_split!(tree::Tree, predicate)
         end
     end
     recursion(tree.node_root)
-
+    tree.kdtree = build_ketree(tree.vertex)
     println("finish autosplit")
 end
 
 function vertex_reduction!(tree::Tree)
     println("start vertex reductoin")
-    kdtree = build_ketree(tree.vertex)
 
     # first re-label the indices.
     # for example if S1 = [1, 4, 6], S2 = [2, 3, 7], S3 =[5, 8] are duplicated
@@ -165,7 +163,7 @@ function vertex_reduction!(tree::Tree)
         map[id] = id_new
         push!(vertex_new, tree.vertex[id])
         push!(data_new, tree.data[id])
-        id_depuli_lst = inrange(kdtree, tree.vertex[id], ε, true)
+        id_depuli_lst = inrange(tree.kdtree, tree.vertex[id], ε, true)
         for id_depuli in id_depuli_lst
             map[id_depuli] = id_new
             id_lst = setdiff(id_lst, id_depuli)
@@ -186,6 +184,7 @@ function vertex_reduction!(tree::Tree)
         end
     end
     recursion(tree.node_root)
+    tree.kdtree = build_ketree(tree.vertex)
     println("end vertex reduction")
 end
 
