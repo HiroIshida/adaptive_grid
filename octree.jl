@@ -58,7 +58,6 @@ mutable struct Tree
     vertex::Vector{Vertex}
     data::Vector{Float64} # data stored in vertex
     func#function
-    kdtree::Union{KDTree, Nothing}
 
     function Tree(b_min, b_max, func)
         ndim = length(b_min)
@@ -68,7 +67,7 @@ mutable struct Tree
         f_lst = [func(v) for v in v_lst]
         id_vert = [i for i in 1:2^ndim]
         node_root = Node(N_node, b_min, b_max, id_vert)
-        new(N_node, N_vert, ndim, [node_root], node_root, v_lst, f_lst, func, nothing)
+        new(N_node, N_vert, ndim, [node_root], node_root, v_lst, f_lst, func)
     end
 end
 
@@ -126,7 +125,6 @@ function auto_split!(tree::Tree, predicate)
         end
     end
     recursion(tree.node_root)
-    tree.kdtree = build_ketree(tree.vertex)
     println("finish autosplit")
 end
 
@@ -159,16 +157,8 @@ function remove_duplicated_vertex!(tree::Tree)
         end
     end
     recursion(tree.node_root)
-    tree.kdtree = build_ketree(tree.vertex)
     println("end vertex reduction")
 end
-
-function find_near_vertices(tree::Tree, q, r)
-    # return ids of near vertex
-    ids = inrange(tree.kdtree, q, r, true)
-    return ids
-end
-
 
 function show(tree::Tree)
     function recursion(node::Node)
