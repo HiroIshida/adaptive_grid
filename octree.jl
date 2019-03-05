@@ -130,31 +130,20 @@ function auto_split!(tree::Tree, predicate)
     println("finish autosplit")
 end
 
-function vertex_reduction!(tree::Tree)
+function remove_duplicated_vertex!(tree::Tree)
     println("start vertex reductoin")
 
     # first re-label the indices.
     # for example if S1 = [1, 4, 6], S2 = [2, 3, 7], S3 =[5, 8] are duplicated
     # label them i1=1 i2=2 i3=3. Then, make a map from S -> i
     # potentially dangerous operation
+    map, valid_ids = vertex_reduction(tree.vertex)
+
     vertex_new = Vertex[]
     data_new = Float64[]
-    id_lst = [i for i in 1:tree.N_vert]
-    map = [-1 for i in 1:tree.N_vert] # -1 represetnts unvisited
-    ε = 1e-4
-    id_new = 1
-    while(length(id_lst)>0)
-        id = id_lst[1] # pop
-        id_lst = setdiff(id_lst, id)
-        map[id] = id_new
+    for id in valid_ids
         push!(vertex_new, tree.vertex[id])
         push!(data_new, tree.data[id])
-        id_depuli_lst = inrange(tree.kdtree, tree.vertex[id], ε, true)
-        for id_depuli in id_depuli_lst
-            map[id_depuli] = id_new
-            id_lst = setdiff(id_lst, id_depuli)
-        end
-        id_new += 1
     end
     tree.N_vert = length(vertex_new)
     tree.vertex = vertex_new
