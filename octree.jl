@@ -123,20 +123,6 @@ function auto_split!(tree::Tree, predicate)
             for id in node.id_child
                 recursion(tree.node[id])
             end
-        else  # if terminal node
-            b_min = node.b_min
-            b_max = node.b_max
-            v_lst = bound2vert(b_min, b_max)
-            f_lst = [tree.func(v) for v in v_lst]
-            data = form_data_cubic(f_lst, tree.ndim)
-            itp_ = interpolate(data, BSpline(Linear())) 
-
-            function itp(p)
-                p_modif = (p - b_min)./(b_max - b_min) .+ 1
-                return (tree.ndim == 2 ? itp_(p_modif[1], p_modif[2]) :
-                        itp_(p_modif[1], p_modif[2], p_modif[3]))
-            end
-            node.itp = itp
         end
     end
     recursion(tree.node_root)
