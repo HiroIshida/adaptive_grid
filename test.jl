@@ -53,6 +53,7 @@ function test_3dim(tol; use_cache=false)
 
     tree = Tree([-100, -100, -100], [100, 100, 100], f)
     auto_split!(tree, predicate)
+    println(tree.depth_max)
     #=
     if use_cache
         cache = load("test_cache.jld")
@@ -79,7 +80,7 @@ end
 
 
 
-tol = 0.1
+tol = 0.01
 @test test_2dim(tol)
 @test @time test_3dim(tol; use_cache=false)
 @test @time test_3dim(tol; use_cache=true)

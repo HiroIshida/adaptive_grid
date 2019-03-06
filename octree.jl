@@ -105,10 +105,13 @@ function split!(tree::Tree, node::Node)
             push!(tree.data, tree.func(v))
         end
         id_vert = [tree.N_vert + i for i in 1:2^tree.ndim]
-        node_new = Node(tree.N_node+1, node.depth+1, b_min_new, b_max_new, id_vert)
+        depth_new = node.depth+1
+        node_new = Node(tree.N_node+1, depth_new, b_min_new, b_max_new, id_vert)
         push!(tree.node, node_new)
         tree.N_vert += 2^tree.ndim
         tree.N_node += 1
+        tree.depth_max < depth_new && (tree.depth_max = depth_new)
+        
         ## dangerous
     end
 end
