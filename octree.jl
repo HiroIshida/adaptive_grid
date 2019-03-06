@@ -63,12 +63,13 @@ mutable struct Tree
     function Tree(b_min, b_max, func)
         ndim = length(b_min)
         N_node = 1
-        N_vert = 2^ndim
+        N_vert = 0
         depth_init = 1
-        v_lst = bound2vert(b_min, b_max)
-        f_lst = [func(v) for v in v_lst]
+        vertex = Vector{Vertex}[]
+        data = Vector{Float64}[]
         node_root = Node(N_node, depth_init, b_min, b_max)
-        new(N_node, N_vert, ndim, depth_init, [node_root], node_root, v_lst, f_lst, func)
+        new(N_node, N_vert, ndim, depth_init, [node_root], node_root,
+            vertex, data, func)
     end
 end
 
@@ -116,6 +117,11 @@ function auto_split!(tree::Tree, predicate)
                 recursion(tree.node[id])
             end
         else
+            v_lst = bound2vert(node.b_min, node.b_max)
+            for v in v_lst
+            end
+            println(tree.N_vert)
+
             error("ここでvertexを挿入しろ")
         end
     end
