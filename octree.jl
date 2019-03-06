@@ -11,14 +11,14 @@ const Vertex = Vector{Float64}
 mutable struct Node
     id::Int
     ndim::Int
+    depth::Int
     b_min
     b_max
     id_vert::Vector{Int}
     id_child::Union{Vector{Int}, Nothing}
-    itp # type?
-    function Node(id, b_min, b_max, id_vert)
+    function Node(id, depth, b_min, b_max)
         ndim = length(b_min)
-        new(id, ndim, b_min, b_max, id_vert, nothing, nothing)
+        new(id, ndim, depth, b_min, b_max, Vector{Int}[], nothing)
     end
 end
 
@@ -53,6 +53,7 @@ mutable struct Tree
     N_node::Int
     N_vert::Int
     ndim::Int
+    depth_max::Int
     node::Vector{Node}
     node_root::Node
     vertex::Vector{Vertex}
@@ -62,12 +63,13 @@ mutable struct Tree
     function Tree(b_min, b_max, func)
         ndim = length(b_min)
         N_node = 1
-        N_vert = 2^ndim
-        v_lst = bound2vert(b_min, b_max)
-        f_lst = [func(v) for v in v_lst]
-        id_vert = [i for i in 1:2^ndim]
-        node_root = Node(N_node, b_min, b_max, id_vert)
-        new(N_node, N_vert, ndim, [node_root], node_root, v_lst, f_lst, func)
+        N_vert = 0
+        depth_init = 1
+        vertex = Vector{Vertex}[]
+        data = Vector{Float64}[]
+        node_root = Node(N_node, depth_init, b_min, b_max)
+        new(N_node, N_vert, ndim, depth_init, [node_root], node_root,
+            vertex, data, func)
     end
 end
 
@@ -95,19 +97,11 @@ function split!(tree::Tree, node::Node)
         id_new = tree.N_node+1
         b_min_new = b_min+add
         b_max_new = b_center+add # not b_max + add
-        vertices_new = bound2vert(b_min_new, b_max_new)
-
-        ## dangerous: complicated and potentially buggy
-        for v in vertices_new
-            push!(tree.vertex, v)
-            push!(tree.data, tree.func(v))
-        end
-        id_vert = [tree.N_vert + i for i in 1:2^tree.ndim]
-        node_new = Node(tree.N_node+1, b_min_new, b_max_new, id_vert)
+        depth_new = node.depth+1
+        node_new = Node(tree.N_node+1, depth_new, b_min_new, b_max_new)
         push!(tree.node, node_new)
-        tree.N_vert += 2^tree.ndim
         tree.N_node += 1
-        ## dangerous
+        tree.depth_max < depth_new && (tree.depth_max = depth_new)
     end
 end
 
@@ -122,48 +116,74 @@ function auto_split!(tree::Tree, predicate)
             for id in node.id_child
                 recursion(tree.node[id])
             end
+        else
+            v_lst = bound2vert(node.b_min, node.b_max)
+            for v in v_lst
+                tree.N_vert += 1
+                push!(tree.vertex, v)
+                push!(tree.data, tree.func(v))
+                push!(node.id_vert, tree.N_vert)
+            end
         end
     end
     recursion(tree.node_root)
     println("finish autosplit")
 end
 
-function remove_duplicated_vertex!(tree::Tree; map_cache=nothing, ids_cache=nothing)
-    println("start vertex reductoin")
-    # first re-label the indices.
-    # for example if S1 = [1, 4, 6], S2 = [2, 3, 7], S3 =[5, 8] are duplicated
-    # label them i1=1 i2=2 i3=3. Then, make a map from S -> i
-    # potentially dangerous operation
+function construct_vertex_and_data!(tree::Tree, predicate)
+    println("refresing stored data...")
+    println("current vertex num is "*string(tree.N_vert))
 
-    if (map_cache==nothing) | (ids_cache==nothing) 
-        map, valid_ids = vertex_reduction(tree.vertex)
-    else # if use cache
-        map = map_cache
-        valid_ids = ids_cache
-    end
+    # delete vertex and data
+    tree.vertex = Vector{Vertex}[]
+    tree.data = Vector{Float64}[]
+    tree.N_vert = 0
+    
+    N_vert_1dim = 2^(tree.depth_max-1)+1
+    N_vert_whole = N_vert_1dim^tree.ndim
+    foot_print = [-1 for i in 1:N_vert_whole] # -1 means unvisited
+    b_min_root = tree.node_root.b_min
+    b_max_root = tree.node_root.b_max
+    size_min = (b_max_root - b_min_root)/2^(tree.depth_max-1)
 
-    vertex_new = Vertex[]
-    data_new = Float64[]
-    for id in valid_ids
-        push!(vertex_new, tree.vertex[id])
-        push!(data_new, tree.data[id])
-    end
-    tree.N_vert = length(vertex_new)
-    tree.vertex = vertex_new
-    tree.data = data_new
+    visitor_counter = 0
 
     function recursion(node::Node)
-        if node.id_child!=nothing
+        if predicate(node)
             for id in node.id_child
                 recursion(tree.node[id])
             end
         else
-            node.id_vert = [map[i] for i in node.id_vert]
+            # delete id_vert  
+            node.id_vert = Vector{Int}[]
+            
+            v_lst = bound2vert(node.b_min, node.b_max)
+            for v in v_lst
+                i = round(Int, (v[1]-b_min_root[1])/size_min[1] + 1)
+                j = round(Int, (v[2]-b_min_root[2])/size_min[2] + 1)
+                if tree.ndim == 2
+                    idx_of_id = (i-1)*N_vert_1dim^1 + (j-1) + 1
+                elseif tree.ndim == 3
+                    k = round(Int, (v[3]-b_min_root[3])/size_min[3] + 1)
+                    idx_of_id = (i-1)*N_vert_1dim^2 + (j-1)*N_vert_1dim + (k-1) + 1
+                end
+
+                if foot_print[idx_of_id]==-1 # unvisited
+                    visitor_counter += 1
+                    foot_print[idx_of_id] = visitor_counter # foot print so that next comer can follow this
+                    push!(node.id_vert, visitor_counter)
+                else # reach idx where someone else already reached
+                    push!(node.id_vert, foot_print[idx_of_id])
+                end
+                push!(tree.vertex, v)
+                push!(tree.data, tree.func(v))
+            end
+
         end
     end
     recursion(tree.node_root)
-    println("end vertex reduction")
-    return map, valid_ids
+    tree.N_vert = visitor_counter
+    println("reduced vertex num is "*string(tree.N_vert))
 end
 
 function show(tree::Tree)
