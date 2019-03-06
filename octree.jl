@@ -14,11 +14,11 @@ mutable struct Node
     depth::Int
     b_min
     b_max
-    id_vert::Union{Vector{Int}, Nothing}
+    id_vert::Vector{Int}
     id_child::Union{Vector{Int}, Nothing}
     function Node(id, depth, b_min, b_max)
         ndim = length(b_min)
-        new(id, ndim, depth, b_min, b_max, nothing, nothing)
+        new(id, ndim, depth, b_min, b_max, Vector{Int}[], nothing)
     end
 end
 
@@ -119,10 +119,11 @@ function auto_split!(tree::Tree, predicate)
         else
             v_lst = bound2vert(node.b_min, node.b_max)
             for v in v_lst
+                tree.N_vert += 1
+                push!(tree.vertex, v)
+                push!(tree.data, tree.func(v))
+                push!(node.id_vert, tree.N_vert)
             end
-            println(tree.N_vert)
-
-            error("ここでvertexを挿入しろ")
         end
     end
     recursion(tree.node_root)
