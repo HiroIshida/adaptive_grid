@@ -22,6 +22,7 @@ function test_2dim(tol)
 
     tree = Tree([-100, -100], [100, 100], f)
     auto_split!(tree, predicate)
+    println("so far so good")
     #remove_duplicated_vertex!(tree)
     #show(tree)
     
@@ -81,6 +82,6 @@ end
 
 
 tol = 0.01
-@test test_2dim(tol)
+test_2dim(tol)
 @test @time test_3dim(tol; use_cache=false)
 @test @time test_3dim(tol; use_cache=true)

@@ -14,11 +14,11 @@ mutable struct Node
     depth::Int
     b_min
     b_max
-    id_vert::Vector{Int}
+    id_vert::Union{Vector{Int}, Nothing}
     id_child::Union{Vector{Int}, Nothing}
-    function Node(id, depth, b_min, b_max, id_vert)
+    function Node(id, depth, b_min, b_max)
         ndim = length(b_min)
-        new(id, ndim, depth, b_min, b_max, id_vert, nothing)
+        new(id, ndim, depth, b_min, b_max, nothing, nothing)
     end
 end
 
@@ -67,8 +67,7 @@ mutable struct Tree
         depth_init = 1
         v_lst = bound2vert(b_min, b_max)
         f_lst = [func(v) for v in v_lst]
-        id_vert = [i for i in 1:2^ndim]
-        node_root = Node(N_node, depth_init, b_min, b_max, id_vert)
+        node_root = Node(N_node, depth_init, b_min, b_max)
         new(N_node, N_vert, ndim, depth_init, [node_root], node_root, v_lst, f_lst, func)
     end
 end
@@ -97,22 +96,11 @@ function split!(tree::Tree, node::Node)
         id_new = tree.N_node+1
         b_min_new = b_min+add
         b_max_new = b_center+add # not b_max + add
-        vertices_new = bound2vert(b_min_new, b_max_new)
-
-        ## dangerous: complicated and potentially buggy
-        for v in vertices_new
-            push!(tree.vertex, v)
-            push!(tree.data, tree.func(v))
-        end
-        id_vert = [tree.N_vert + i for i in 1:2^tree.ndim]
         depth_new = node.depth+1
-        node_new = Node(tree.N_node+1, depth_new, b_min_new, b_max_new, id_vert)
+        node_new = Node(tree.N_node+1, depth_new, b_min_new, b_max_new)
         push!(tree.node, node_new)
-        tree.N_vert += 2^tree.ndim
         tree.N_node += 1
         tree.depth_max < depth_new && (tree.depth_max = depth_new)
-        
-        ## dangerous
     end
 end
 
@@ -127,6 +115,8 @@ function auto_split!(tree::Tree, predicate)
             for id in node.id_child
                 recursion(tree.node[id])
             end
+        else
+            error("ここでvertexを挿入しろ")
         end
     end
     recursion(tree.node_root)
