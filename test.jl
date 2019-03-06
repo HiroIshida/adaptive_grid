@@ -37,7 +37,7 @@ function test_2dim(tol)
     return isValid
 end
 
-function test_3dim(tol; use_cache=false)
+function test_3dim(tol)
     sigma = 7
     function sdf(x, b)
         d = abs.(x) - b
@@ -54,15 +54,6 @@ function test_3dim(tol; use_cache=false)
     tree = Tree([-100, -100, -100], [100, 100, 100], f)
     auto_split!(tree, predicate)
     construct_vertex_and_data!(tree, predicate)
-    #=
-    if use_cache
-        cache = load("test_cache.jld")
-        remove_duplicated_vertex!(tree; map_cache=cache["map"], ids_cache=cache["ids"])
-    else
-        map, valid_ids = remove_duplicated_vertex!(tree)
-        save("test_cache.jld", "map", map, "ids", valid_ids)
-    end
-    =#
     
     isValid = true
     for i in 1:1000
@@ -82,4 +73,4 @@ end
 
 tol = 0.01
 @test test_2dim(tol)
-@time test_3dim(tol; use_cache=false)
+@time test_3dim(tol)

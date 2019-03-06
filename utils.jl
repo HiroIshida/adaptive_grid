@@ -33,40 +33,6 @@ function build_kdtree(vertex_lst)
     return kdtree
 end
 
-function vertex_reduction(vertex_lst)
-    N_vert = length(vertex_lst)
-    kdtree = build_kdtree(vertex_lst)
-    id_lst = [i for i in 1:N_vert]
-
-    map = [-1 for i in 1:N_vert] # -1 represetnts unvisited
-    valid_ids = Int[] # thd ids extracted without depulication
-    
-    ε = 1e-4
-    id_new = 1
-    while(length(id_lst)>0)
-
-        id = id_lst[1] # pop
-        push!(valid_ids, id)
-
-        # just display
-        # just display
-        percentage = id/N_vert*100
-        #println(percentage)
-        # just display
-        # just display
-        
-        id_lst = setdiff(id_lst, id)
-        map[id] = id_new
-        id_depuli_lst = inrange(kdtree, vertex_lst[id], ε, true)
-        for id_depuli in id_depuli_lst
-            map[id_depuli] = id_new
-            id_lst = setdiff(id_lst, id_depuli)
-        end
-        id_new += 1
-    end
-
-    return map, valid_ids
-end
 
 function itr(ndim)
     i = 0
