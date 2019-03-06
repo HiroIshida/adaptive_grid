@@ -51,7 +51,7 @@ function vertex_reduction(vertex_lst)
         # just display
         # just display
         percentage = id/N_vert*100
-        println(percentage)
+        #println(percentage)
         # just display
         # just display
         

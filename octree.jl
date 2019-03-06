@@ -130,8 +130,65 @@ function auto_split!(tree::Tree, predicate)
     println("finish autosplit")
 end
 
+function construct_vertex_and_data!(tree::Tree, predicate)
+    println("refresing stored data...")
+    println("current vertex num is "*string(tree.N_vert))
+
+    # delete vertex and data
+    tree.vertex = Vector{Vertex}[]
+    tree.data = Vector{Float64}[]
+    tree.N_vert = 0
+    
+    N_vert_1dim = 2^(tree.depth_max-1)+1
+    N_vert_whole = N_vert_1dim^tree.ndim
+    foot_print = [-1 for i in 1:N_vert_whole] # -1 means unvisited
+    b_min_root = tree.node_root.b_min
+    b_max_root = tree.node_root.b_max
+    size_min = (b_max_root - b_min_root)/2^(tree.depth_max-1)
+
+    visitor_counter = 0
+
+    function recursion(node::Node)
+        if predicate(node)
+            for id in node.id_child
+                recursion(tree.node[id])
+            end
+        else
+            # delete id_vert  
+            node.id_vert = Vector{Int}[]
+            
+            v_lst = bound2vert(node.b_min, node.b_max)
+            for v in v_lst
+                i = round(Int, (v[1]-b_min_root[1])/size_min[1] + 1)
+                j = round(Int, (v[2]-b_min_root[2])/size_min[2] + 1)
+                if tree.ndim == 2
+                    idx_of_id = (i-1)*N_vert_1dim^1 + (j-1) + 1
+                elseif tree.ndim == 3
+                    k = round(Int, (v[3]-b_min_root[3])/size_min[3] + 1)
+                    idx_of_id = (i-1)*N_vert_1dim^2 + (j-1)*N_vert_1dim + (k-1) + 1
+                end
+
+                if foot_print[idx_of_id]==-1 # unvisited
+                    visitor_counter += 1
+                    foot_print[idx_of_id] = visitor_counter # foot print so that next comer can follow this
+                    push!(node.id_vert, visitor_counter)
+                else # reach idx where someone else already reached
+                    push!(node.id_vert, foot_print[idx_of_id])
+                end
+                push!(tree.vertex, v)
+                push!(tree.data, tree.func(v))
+            end
+
+        end
+    end
+    recursion(tree.node_root)
+    tree.N_vert = visitor_counter
+    println("reduced vertex num is "*string(tree.N_vert))
+end
+
 function remove_duplicated_vertex!(tree::Tree; map_cache=nothing, ids_cache=nothing)
     println("start vertex reductoin")
+    println("current vertex num is "*string(tree.N_vert))
     # first re-label the indices.
     # for example if S1 = [1, 4, 6], S2 = [2, 3, 7], S3 =[5, 8] are duplicated
     # label them i1=1 i2=2 i3=3. Then, make a map from S -> i
@@ -164,6 +221,8 @@ function remove_duplicated_vertex!(tree::Tree; map_cache=nothing, ids_cache=noth
         end
     end
     recursion(tree.node_root)
+
+    println("reduced vertex num is "*string(tree.N_vert))
     println("end vertex reduction")
     return map, valid_ids
 end
