@@ -22,7 +22,7 @@ function test_2dim(tol)
 
     tree = Tree([-100, -100], [100, 100], f)
     auto_split!(tree, predicate)
-    remove_duplicated_vertex!(tree)
+    #remove_duplicated_vertex!(tree)
     #show(tree)
     
     isValid = true
@@ -53,6 +53,7 @@ function test_3dim(tol; use_cache=false)
 
     tree = Tree([-100, -100, -100], [100, 100, 100], f)
     auto_split!(tree, predicate)
+    #=
     if use_cache
         cache = load("test_cache.jld")
         remove_duplicated_vertex!(tree; map_cache=cache["map"], ids_cache=cache["ids"])
@@ -60,6 +61,7 @@ function test_3dim(tol; use_cache=false)
         map, valid_ids = remove_duplicated_vertex!(tree)
         save("test_cache.jld", "map", map, "ids", valid_ids)
     end
+    =#
     
     isValid = true
     for i in 1:1000
