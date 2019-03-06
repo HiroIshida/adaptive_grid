@@ -129,8 +129,7 @@ function auto_split!(tree::Tree, predicate)
     recursion(tree.node_root)
     println("finish autosplit")
 end
-
-function construct_vertex_and_data!(tree::Tree, predicate)
+function remove_duplicated_vertex!(tree::Tree)
     println("refresing stored data...")
     println("current vertex num is "*string(tree.N_vert))
 
@@ -149,7 +148,7 @@ function construct_vertex_and_data!(tree::Tree, predicate)
     visitor_counter = 0
 
     function recursion(node::Node)
-        if predicate(node)
+        if node.id_child != nothing
             for id in node.id_child
                 recursion(tree.node[id])
             end

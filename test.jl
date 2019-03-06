@@ -22,8 +22,7 @@ function test_2dim(tol)
 
     tree = Tree([-100, -100], [100, 100], f)
     auto_split!(tree, predicate)
-    #remove_duplicated_vertex!(tree)
-    #construct_vertex_and_data!(tree, predicate)
+    remove_duplicated_vertex!(tree)
     
     isValid = true
     for i in 1:1000
@@ -53,7 +52,7 @@ function test_3dim(tol)
 
     tree = Tree([-100, -100, -100], [100, 100, 100], f)
     auto_split!(tree, predicate)
-    construct_vertex_and_data!(tree, predicate)
+    remove_duplicated_vertex!(tree)
     
     isValid = true
     for i in 1:1000
