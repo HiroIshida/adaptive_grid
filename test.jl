@@ -23,8 +23,8 @@ function test_2dim(tol)
 
     tree = Tree([-100, -100], [100, 100], f)
     auto_split!(tree, predicate)
-    #remove_duplicated_vertex!(tree)
-    fuck!(tree)
+    remove_duplicated_vertex!(tree)
+    #show(tree)
     show_contour2(tree)
     
     isValid = true
@@ -55,7 +55,7 @@ function test_3dim(tol)
 
     tree = Tree([-100, -100, -100], [100, 100, 100], f)
     auto_split!(tree, predicate)
-    #remove_duplicated_vertex!(tree)
+    @time remove_duplicated_vertex!(tree)
     show_contour3(tree)
     
     isValid = true
@@ -74,6 +74,6 @@ end
 
 
 
-tol = 0.03
-test_2dim(tol)
-#@time test_3dim(tol)
+tol = 0.02
+@test test_2dim(tol)
+@test test_3dim(tol)

@@ -172,21 +172,12 @@ function remove_duplicated_vertex!(tree::Tree; debug = true)
                     visitor_counter += 1
                     foot_print[idx_of_id] = visitor_counter # foot print so that next comer can follow this
                     push!(node.id_vert, visitor_counter)
+                    push!(tree.vertex, v)
+                    push!(tree.data, tree.func(v))
                 else # reach idx where someone else already reached
                     push!(node.id_vert, foot_print[idx_of_id])
                 end
-                push!(tree.vertex, v)
-                push!(tree.data, tree.func(v))
             end
-            
-            # check validity of node
-            if dbeug
-                pts = grid_point(3, node.b_min, node.b_max)
-                for p in pts
-                    tree.func(p)
-                end
-            end
-
         end
     end
     recursion(tree.node_root)
