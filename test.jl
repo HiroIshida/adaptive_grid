@@ -3,6 +3,7 @@ using Test
 using JLD
 include("octree.jl")
 
+
 function test_2dim(tol)
     sigma = 7
     R(a) = [cos(a) -sin(a);
@@ -22,8 +23,8 @@ function test_2dim(tol)
 
     tree = Tree([-100, -100], [100, 100], f)
     auto_split!(tree, predicate)
-    remove_duplicated_vertex!(tree)
-    #fuck!(tree)
+    #remove_duplicated_vertex!(tree)
+    fuck!(tree)
     show_contour2(tree)
     
     isValid = true
@@ -31,7 +32,7 @@ function test_2dim(tol)
         myrn() = rand()*200 - 100
         q = [myrn(), myrn()]
         error = abs(evaluate(tree, q) - f(q))
-        if error > tol*100
+        if error > tol*2
             isValid *= false
         end
     end

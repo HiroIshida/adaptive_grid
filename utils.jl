@@ -1,3 +1,22 @@
+import Interpolations
+
+function make_interp(data, b_min, b_max; method=Linear())
+    ndim = length(b_min)
+    itp = interpolate(data, BSpline(method)) #raw
+    function f(p)
+        p_modif = (p - b_min)./(b_max - b_min) .+ 1
+        if ndim == 2
+            return itp(p_modif[1], p_modif[2])
+        elseif ndim == 3
+            return itp(p_modif[1], p_modif[2], p_modif[3])
+
+        else
+            println("fuck")
+        end
+    end
+    return f
+end
+
 function bound2vert(b_min, b_max)
     ndim = length(b_min)
     dx = bound2dx(b_min, b_max)

@@ -129,7 +129,7 @@ function auto_split!(tree::Tree, predicate)
     recursion(tree.node_root)
     println("finish autosplit")
 end
-function remove_duplicated_vertex!(tree::Tree)
+function remove_duplicated_vertex!(tree::Tree; debug = true)
     println("refresing stored data...")
     println("current vertex num is "*string(tree.N_vert))
 
@@ -156,6 +156,7 @@ function remove_duplicated_vertex!(tree::Tree)
             # delete id_vert  
             node.id_vert = Vector{Int}[]
             
+            # re-edit node info
             v_lst = bound2vert(node.b_min, node.b_max)
             for v in v_lst
                 i = round(Int, (v[1]-b_min_root[1])/size_min[1] + 1)
@@ -176,6 +177,14 @@ function remove_duplicated_vertex!(tree::Tree)
                 end
                 push!(tree.vertex, v)
                 push!(tree.data, tree.func(v))
+            end
+            
+            # check validity of node
+            if dbeug
+                pts = grid_point(3, node.b_min, node.b_max)
+                for p in pts
+                    tree.func(p)
+                end
             end
 
         end
@@ -244,15 +253,8 @@ function evaluate(tree::Tree, q)
     while(true)
         if node.id_child == nothing
             data_itp = form_data_cubic(tree.data[node.id_vert], tree.ndim)
-            itp = interpolate(data_itp, BSpline(Linear())) #raw
-            q_modif = (q - node.b_min)./(node.b_max - node.b_min) .+ 1
-            if tree.ndim == 2
-                return itp(q_modif[1], q_modif[2])
-            elseif tree.ndim == 3
-                return itp(q_modif[1], q_modif[2], q_modif[3])
-            else
-                error("not supported")
-            end
+            itp = make_interp(data_itp, node.b_min, node.b_max)
+            return itp(q)
         end
         idx = whereami(q, node.b_min, node.b_max)
         id_next = node.id_child[idx]
