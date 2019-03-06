@@ -129,7 +129,8 @@ function auto_split!(tree::Tree, predicate)
     recursion(tree.node_root)
     println("finish autosplit")
 end
-function remove_duplicated_vertex!(tree::Tree; debug = true)
+
+function remove_duplicated_vertex!(tree::Tree)
     println("refresing stored data...")
     println("current vertex num is "*string(tree.N_vert))
 
@@ -183,46 +184,6 @@ function remove_duplicated_vertex!(tree::Tree; debug = true)
     recursion(tree.node_root)
     tree.N_vert = visitor_counter
     println("reduced vertex num is "*string(tree.N_vert))
-end
-
-function fuck!(tree::Tree; map_cache=nothing, ids_cache=nothing)
-    println("start vertex reductoin")
-    println("current vertex num is "*string(tree.N_vert))
-    # first re-label the indices.
-    # for example if S1 = [1, 4, 6], S2 = [2, 3, 7], S3 =[5, 8] are duplicated
-    # label them i1=1 i2=2 i3=3. Then, make a map from S -> i
-    # potentially dangerous operation
-
-    if (map_cache==nothing) | (ids_cache==nothing) 
-        map, valid_ids = vertex_reduction(tree.vertex)
-    else # if use cache
-        map = map_cache
-        valid_ids = ids_cache
-    end
-
-    vertex_new = Vertex[]
-    data_new = Float64[]
-    for id in valid_ids
-        push!(vertex_new, tree.vertex[id])
-        push!(data_new, tree.data[id])
-    end
-    tree.N_vert = length(vertex_new)
-    tree.vertex = vertex_new
-    tree.data = data_new
-
-    function recursion(node::Node)
-        if node.id_child!=nothing
-            for id in node.id_child
-                recursion(tree.node[id])
-            end
-        else
-            node.id_vert = [map[i] for i in node.id_vert]
-        end
-    end
-    recursion(tree.node_root)
-    println("reduced vertex num is "*string(tree.N_vert))
-    println("end vertex reduction")
-    return map, valid_ids
 end
 
 function show(tree::Tree)
