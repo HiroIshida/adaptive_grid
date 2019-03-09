@@ -90,9 +90,8 @@ mutable struct Tree{N}
     node_root::Node{N}
     vertex::Vector{SVector{N, Float64}}
     data::Vector{Float64} # data stored in vertex
-    func#function
 
-    function Tree(b_min, b_max, func)
+    function Tree(b_min, b_max)
         ndim = length(b_min)
         N_node = 1
         N_vert = 0
@@ -101,7 +100,7 @@ mutable struct Tree{N}
         data = SVector{ndim, Float64}[]
         node_root = Node(N_node, depth_init, b_min, b_max)
         new{ndim}(N_node, N_vert, ndim, depth_init, [node_root], node_root,
-            vertex, data, func)
+            vertex, data)
     end
 
     function Tree(filename)
@@ -120,7 +119,7 @@ mutable struct Tree{N}
         length(node)!=N_node && error("???")
         length(vertex)!=N_vert && error("???")
 
-        new{ndim}(N_node, N_vert, ndim, depth_max, node, node_root, vertex, data, nothing)
+        new{ndim}(N_node, N_vert, ndim, depth_max, node, node_root, vertex, data)
     end
 end
 
@@ -171,7 +170,7 @@ function split!(tree::Tree, node::Node)
 end
 
 
-function auto_split!(tree::Tree, predicate) 
+function auto_split!(tree::Tree, predicate, func) 
     # recusive split based on the boolean returned by predicate
     # perdicate: Node →  bool
     # interpolation objecet is endowed with each terminal nodes hh
@@ -184,10 +183,11 @@ function auto_split!(tree::Tree, predicate)
         end
     end
     recursion(tree.node_root)
+    remove_duplicated_vertex!(tree, func)
     println("finish autosplit")
 end
 
-function remove_duplicated_vertex!(tree::Tree)
+function remove_duplicated_vertex!(tree::Tree, func)
     println("refresing stored data...")
     println("current vertex num is "*string(tree.N_vert))
 
@@ -235,7 +235,7 @@ function remove_duplicated_vertex!(tree::Tree)
                     foot_print[idx_of_id] = visitor_counter # foot print so that next comer can follow this
                     push!(node.id_vert, visitor_counter)
                     push!(tree.vertex, v)
-                    push!(tree.data, tree.func(v))
+                    push!(tree.data, func(v))
                 else # reach idx where someone else already reached
                     push!(node.id_vert, foot_print[idx_of_id])
                 end

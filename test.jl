@@ -21,9 +21,8 @@ function test_2dim(tol)
     n_grid = 20
     predicate(node::Node) = pred_standard(node, f, tol, n_grid, Linear())
 
-    tree = Tree([-100, -100], [100, 100], f)
-    auto_split!(tree, predicate)
-    remove_duplicated_vertex!(tree)
+    tree = Tree([-100, -100], [100, 100])
+    auto_split!(tree, predicate, f)
     write_json(tree, "tmp.json")
     tree = Tree("tmp.json")
     show_contour2(tree)
@@ -54,9 +53,8 @@ function test_3dim(tol)
     predicate(node::Node) = pred_standard(node, f, tol, n_grid, Linear())
 
 
-    tree = Tree([-100, -100, -100], [100, 100, 100], f)
-    @time auto_split!(tree, predicate)
-    @time remove_duplicated_vertex!(tree)
+    tree = Tree([-100, -100, -100], [100, 100, 100])
+    @time auto_split!(tree, predicate, f)
     write_json(tree, "tmp.json")
     println("read")
     @time tree = Tree("tmp.json")
@@ -79,5 +77,5 @@ end
 
 
 tol = 0.02
-#d = test_2dim(tol)
+@test test_2dim(tol)
 @test test_3dim(tol)
