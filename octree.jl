@@ -4,6 +4,7 @@ using SpecialFunctions
 using PyPlot
 import Base: show
 using NearestNeighbors
+using StaticArrays
 include("utils.jl")
 
 const Vertex = Vector{Float64}
@@ -12,8 +13,8 @@ mutable struct Node
     id::Int
     ndim::Int
     depth::Int
-    b_min
-    b_max
+    b_min::SVector{2, Float64}
+    b_max::SVector{2, Float64}
     id_vert::Vector{Int}
     id_child::Union{Vector{Int}, Nothing}
     function Node(id, depth, b_min, b_max)
