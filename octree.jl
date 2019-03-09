@@ -7,14 +7,15 @@ using NearestNeighbors
 using StaticArrays
 include("utils.jl")
 
-const Vertex = Vector{Float64}
+const Svec2f = SVector{2, Float64}
+const Vertex = Svec2f
 
 mutable struct Node
     id::Int
     ndim::Int
     depth::Int
-    b_min::SVector{2, Float64}
-    b_max::SVector{2, Float64}
+    b_min::Svec2f
+    b_max::Svec2f
     id_vert::Vector{Int}
     id_child::Union{Vector{Int}, Nothing}
     function Node(id, depth, b_min, b_max)
