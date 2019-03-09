@@ -116,14 +116,6 @@ function auto_split!(tree::Tree, predicate)
             for id in node.id_child
                 recursion(tree.node[id])
             end
-        else
-            v_lst = bound2vert(node.b_min, node.b_max)
-            for v in v_lst
-                tree.N_vert += 1
-                push!(tree.vertex, v)
-                push!(tree.data, tree.func(v))
-                push!(node.id_vert, tree.N_vert)
-            end
         end
     end
     recursion(tree.node_root)
