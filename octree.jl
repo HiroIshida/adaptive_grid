@@ -4,21 +4,21 @@ using SpecialFunctions
 using PyPlot
 import Base: show
 using NearestNeighbors
+using StaticArrays
 include("utils.jl")
 
-const Vertex = Vector{Float64}
 
-mutable struct Node
+mutable struct Node{N}
     id::Int
     ndim::Int
     depth::Int
-    b_min
-    b_max
+    b_min::SVector{N, Float64}
+    b_max::SVector{N, Float64}
     id_vert::Vector{Int}
     id_child::Union{Vector{Int}, Nothing}
     function Node(id, depth, b_min, b_max)
         ndim = length(b_min)
-        new(id, ndim, depth, b_min, b_max, Vector{Int}[], nothing)
+        new{ndim}(id, ndim, depth, b_min, b_max, Vector{Int}[], nothing)
     end
 end
 
@@ -48,15 +48,15 @@ function show(node::Node; color=:r)
     end
 end
 
-mutable struct Tree
+mutable struct Tree{N}
     # member variable
     N_node::Int
     N_vert::Int
     ndim::Int
     depth_max::Int
-    node::Vector{Node}
-    node_root::Node
-    vertex::Vector{Vertex}
+    node::Vector{Node{N}}
+    node_root::Node{N}
+    vertex::Vector{SVector{N, Float64}}
     data::Vector{Float64} # data stored in vertex
     func#function
 
@@ -65,10 +65,10 @@ mutable struct Tree
         N_node = 1
         N_vert = 0
         depth_init = 1
-        vertex = Vector{Vertex}[]
-        data = Vector{Float64}[]
+        vertex = SVector{ndim, Float64}[]
+        data = SVector{ndim, Float64}[]
         node_root = Node(N_node, depth_init, b_min, b_max)
-        new(N_node, N_vert, ndim, depth_init, [node_root], node_root,
+        new{ndim}(N_node, N_vert, ndim, depth_init, [node_root], node_root,
             vertex, data, func)
     end
 end
@@ -135,7 +135,7 @@ function remove_duplicated_vertex!(tree::Tree)
     println("current vertex num is "*string(tree.N_vert))
 
     # delete vertex and data
-    tree.vertex = Vector{Vertex}[]
+    tree.vertex = Vector{SVector{tree.ndim, Float64}}[]
     tree.data = Vector{Float64}[]
     tree.N_vert = 0
     

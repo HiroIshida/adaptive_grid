@@ -22,10 +22,10 @@ function test_2dim(tol)
     predicate(node::Node) = pred_standard(node, f, tol, n_grid, Linear())
 
     tree = Tree([-100, -100], [100, 100], f)
-    auto_split!(tree, predicate)
+    @time auto_split!(tree, predicate)
     remove_duplicated_vertex!(tree)
     #show(tree)
-    show_contour2(tree)
+    #show_contour2(tree)
     
     isValid = true
     for i in 1:1000
@@ -75,5 +75,5 @@ end
 
 
 tol = 0.02
-@test test_2dim(tol)
+@time test_2dim(tol)
 @test test_3dim(tol)
