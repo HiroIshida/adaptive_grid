@@ -26,6 +26,7 @@ function test_2dim(tol)
     remove_duplicated_vertex!(tree)
     #show(tree)
     #show_contour2(tree)
+    @time write_json(tree, "tmp.json")
     
     isValid = true
     for i in 1:1000
@@ -75,5 +76,5 @@ end
 
 
 tol = 0.02
-@test test_2dim(tol)
-@test test_3dim(tol)
+d = test_2dim(tol)
+#@test test_3dim(tol)

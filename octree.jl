@@ -5,6 +5,7 @@ using PyPlot
 import Base: show
 using NearestNeighbors
 using StaticArrays
+using JSON
 include("utils.jl")
 
 
@@ -22,8 +23,14 @@ mutable struct Node{N}
     end
 end
 
-function write_json(node::Node)
-
+function convert_to_dict(node::Node)
+    d = Dict([("id", node.id),
+              ("ndim", node.ndim),
+              ("b_min", node.b_min),
+              ("b_max", node.b_max),
+              ("id_vert", node.id_vert),
+              ("id_child", node.id_child)])
+    return d
 end
 
 function show(node::Node; color=:r)
@@ -74,6 +81,20 @@ mutable struct Tree{N}
         node_root = Node(N_node, depth_init, b_min, b_max)
         new{ndim}(N_node, N_vert, ndim, depth_init, [node_root], node_root,
             vertex, data, func)
+    end
+end
+
+function write_json(tree::Tree, filename)
+    dict = Dict("N_node"=>tree.N_node,
+             "N_vert"=>tree.N_vert,
+             "ndim"=>tree.ndim,
+             "depth_max"=>tree.depth_max,
+             "node"=>Dict(string(i)=>convert_to_dict(tree.node[i]) for i in 1:length(tree.node)),
+             "vertex"=>Dict(string(i)=>tree.vertex[i] for i in 1:length(tree.vertex)),
+             "data"=>Dict(string(i)=>tree.data[i] for i in 1:length(tree.data)))
+    j = JSON.json(dict)
+    open(filename, "w") do f
+        write(f, j)
     end
 end
 
