@@ -6,5 +6,11 @@ struct A{N, T}
     end
 end
 
-b = A(SVector(4 ,2, 2))
+function fuck(a::SVector{N, Float64}) where N
+    println(N)
+    return 1
+end
+
+N=2
+fuck(SVector(2, 2.0)::SVector{N, Float64})
 

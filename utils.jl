@@ -1,6 +1,5 @@
 import Interpolations
 using StaticArrays
-const Svec2f = SVector{2, Float64}
 
 function make_interp(data, b_min, b_max; method=Linear())
     ndim = length(b_min)
@@ -19,11 +18,10 @@ function make_interp(data, b_min, b_max; method=Linear())
     return f
 end
 
-function bound2vert(b_min::Svec2f, b_max::Svec2f)
+function bound2vert(b_min::SVector{N, Float64}, b_max::SVector{N, Float64}) where N
     ndim = length(b_min)
     dx = bound2dx(b_min, b_max)
-    v_lst = Svec2f[]
-
+    v_lst = SVector{N, Float64}[]
     for i in 0:(2^ndim-1)
         add = [0.0 for n in 1:ndim]
         for dim in 1:ndim
@@ -72,10 +70,10 @@ function form_data_cubic(f_lst, ndim)
     return data
 end
 
-function bound2dx(b_min::Svec2f, b_max::Svec2f)
+function bound2dx(b_min::SVector{N, Float64}, b_max::SVector{N, Float64}) where N
     ndim = length(b_min)
     dif = b_max - b_min
-    dx = Svec2f[]
+    dx = SVector{N, Float64}[]
     for i in 1:ndim
         dx_ = [0.0 for n=1:ndim]
         dx_[i] = dif[i]
@@ -95,11 +93,11 @@ function whereami(q, b_min, b_max)
     return idx
 end
 
-function grid_points(N_grid, b_min::Svec2f, b_max::Svec2f)
+function grid_points(N_grid, b_min::SVector{N, Float64}, b_max::SVector{N, Float64}) where N
     # generate points at regular intervals in a cell 
     # return N_grid^3 points
     ndim = length(b_min)
-    points = Svec2f[]
+    points = SVector{N, Float64}[]
     dx = (b_max - b_min)/N_grid
     if ndim == 2 # TODO
         for i in 0:N_grid-1, j in 0:N_grid-1

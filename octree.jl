@@ -7,8 +7,6 @@ using NearestNeighbors
 using StaticArrays
 include("utils.jl")
 
-const Svec2f = SVector{2, Float64}
-const Vertex = Svec2f
 
 mutable struct Node{N}
     id::Int
@@ -137,7 +135,7 @@ function remove_duplicated_vertex!(tree::Tree)
     println("current vertex num is "*string(tree.N_vert))
 
     # delete vertex and data
-    tree.vertex = Vector{Vertex}[]
+    tree.vertex = Vector{SVector{tree.ndim, Float64}}[]
     tree.data = Vector{Float64}[]
     tree.N_vert = 0
     

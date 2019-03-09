@@ -75,5 +75,5 @@ end
 
 
 tol = 0.02
-test_2dim(tol)
-#@test test_3dim(tol)
+@time test_2dim(tol)
+@test test_3dim(tol)
