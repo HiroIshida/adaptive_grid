@@ -14,12 +14,16 @@ mutable struct Node{N}
     depth::Int
     b_min::SVector{N, Float64}
     b_max::SVector{N, Float64}
-    id_vert::Vector{Int}
+    id_vert::Union{Vector{Int}, Nothing}
     id_child::Union{Vector{Int}, Nothing}
     function Node(id, depth, b_min, b_max)
         ndim = length(b_min)
-        new{ndim}(id, ndim, depth, b_min, b_max, Vector{Int}[], nothing)
+        new{ndim}(id, ndim, depth, b_min, b_max, nothing, nothing)
     end
+end
+
+function write_json(node::Node)
+
 end
 
 function show(node::Node; color=:r)
