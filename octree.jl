@@ -17,15 +17,36 @@ mutable struct Node{N}
     b_max::SVector{N, Float64}
     id_vert::Union{Vector{Int}, Nothing}
     id_child::Union{Vector{Int}, Nothing}
+
     function Node(id, depth, b_min, b_max)
         ndim = length(b_min)
         new{ndim}(id, ndim, depth, b_min, b_max, nothing, nothing)
+    end
+
+    function Node(dict)
+        id = dict["id"]
+        ndim = dict["ndim"]
+        depth = dict["depth"]
+        b_min = convert(Vector{Float64}, dict["b_min"])
+        b_max = convert(Vector{Float64}, dict["b_max"])
+        
+        id_vert = dict["id_vert"]
+        if id_vert != nothing
+            id_vert = convert(Vector{Int}, id_vert)
+        end
+
+        id_child = dict["id_child"]
+        if id_child != nothing
+            id_child = convert(Vector{Int}, id_child)
+        end
+        new{ndim}(id, ndim, depth, b_min, b_max, id_vert, id_child)
     end
 end
 
 function convert_to_dict(node::Node)
     d = Dict([("id", node.id),
               ("ndim", node.ndim),
+              ("depth", node.depth),
               ("b_min", node.b_min),
               ("b_max", node.b_max),
               ("id_vert", node.id_vert),
@@ -81,6 +102,25 @@ mutable struct Tree{N}
         node_root = Node(N_node, depth_init, b_min, b_max)
         new{ndim}(N_node, N_vert, ndim, depth_init, [node_root], node_root,
             vertex, data, func)
+    end
+
+    function Tree(filename)
+        text = read(filename, String)
+        dict = JSON.parse(text)
+        N_node = dict["N_node"]
+        N_vert = dict["N_vert"]
+        ndim = dict["ndim"]
+        depth_max = dict["depth_max"]
+        node = [Node(dict["node"][string(i)]) for i in 1:N_node]
+        node_root = node[1]
+        vertex = [convert(SVector{ndim, Float64}, dict["vertex"][string(i)]) for i in 1:N_vert]
+        data = [dict["data"][string(i)] for i in 1:N_vert]
+
+        # check
+        length(node)!=N_node && error("???")
+        length(vertex)!=N_vert && error("???")
+
+        new{ndim}(N_node, N_vert, ndim, depth_max, node, node_root, vertex, data, nothing)
     end
 end
 
