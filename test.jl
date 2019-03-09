@@ -55,8 +55,8 @@ function test_3dim(tol)
 
 
     tree = Tree([-100, -100, -100], [100, 100, 100], f)
-    auto_split!(tree, predicate)
-    remove_duplicated_vertex!(tree)
+    @time auto_split!(tree, predicate)
+    @time remove_duplicated_vertex!(tree)
     write_json(tree, "tmp.json")
     println("read")
     @time tree = Tree("tmp.json")
@@ -78,6 +78,6 @@ end
 
 
 
-tol = 0.01
+tol = 0.02
 #d = test_2dim(tol)
 @test test_3dim(tol)

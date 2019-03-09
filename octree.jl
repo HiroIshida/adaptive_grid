@@ -198,6 +198,10 @@ function remove_duplicated_vertex!(tree::Tree)
     
     N_vert_1dim = 2^(tree.depth_max-1)+1
     N_vert_whole = N_vert_1dim^tree.ndim
+    if N_vert_whole>10^8
+        println(N_vert_whole)
+        error("fuck")
+    end
     foot_print = [-1 for i in 1:N_vert_whole] # -1 means unvisited
     b_min_root = tree.node_root.b_min
     b_max_root = tree.node_root.b_max
