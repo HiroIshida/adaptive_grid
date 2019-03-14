@@ -1,5 +1,3 @@
-import Interpolations
-using StaticArrays
 
 function make_interp(data, b_min, b_max; method=Linear())
     ndim = length(b_min)

@@ -1,5 +1,3 @@
-include("octree.jl")
-using JSON
 
 ## json writer 
 function write_json(tree::Tree, filename)

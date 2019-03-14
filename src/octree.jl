@@ -1,8 +1,3 @@
-using LinearAlgebra
-import Interpolations
-using SpecialFunctions
-using StaticArrays
-include("utils.jl")
 
 mutable struct Node{N}
     id::Int
@@ -163,19 +158,6 @@ function asigne_value_to_vertex!(tree::Tree, func)
     println("reduced vertex num is "*string(tree.N_vert))
 end
 
-function show(tree::Tree)
-    function recursion(node::Node)
-        if node.id_child!=nothing
-            for id in node.id_child
-                recursion(tree.node[id])
-            end
-        else
-            show(node; color=:r)
-        end
-    end
-    recursion(tree.node_root)
-    println("finish show")
-end
 
 function evaluate(tree::Tree, q)
     node = tree.node_root

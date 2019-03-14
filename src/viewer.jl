@@ -1,6 +1,16 @@
-include("octree.jl")
-using PyPlot
-import Base: show
+function show(tree::Tree)
+    function recursion(node::Node)
+        if node.id_child!=nothing
+            for id in node.id_child
+                recursion(tree.node[id])
+            end
+        else
+            show(node; color=:r)
+        end
+    end
+    recursion(tree.node_root)
+    println("finish show")
+end
 
 function show(node::Node; color=:r)
     v_lst = bound2vert(node.b_min, node.b_max)

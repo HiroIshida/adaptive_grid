@@ -1,10 +1,8 @@
-using Interpolations
-using Test
-using JLD
-include("octree.jl")
-include("json_io.jl")
-include("viewer.jl")
 
+push!(LOAD_PATH, "/home/hsihida/documents/AdaptiveGrid.jl/src")
+using AdaptiveGrid
+using Interpolations
+using LinearAlgebra
 
 function test_2dim(tol)
     sigma = 7
