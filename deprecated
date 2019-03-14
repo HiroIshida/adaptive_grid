@@ -1,9 +1,0 @@
-function evaluate_(tree::Tree, q)
-    node = tree.node_root
-    while(true)
-        node.id_child == nothing && return node.itp(q)
-        idx = whereami(q, node.b_min, node.b_max)
-        id_next = node.id_child[idx]
-        node = tree.node[id_next]
-    end
-end

@@ -2,6 +2,7 @@ using Interpolations
 using Test
 using JLD
 include("octree.jl")
+include("json_io.jl")
 include("viewer.jl")
 
 
