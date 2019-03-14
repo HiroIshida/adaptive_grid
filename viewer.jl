@@ -1,4 +1,6 @@
 include("octree.jl")
+using PyPlot
+import Base: show
 
 function show(node::Node; color=:r)
     v_lst = bound2vert(node.b_min, node.b_max)

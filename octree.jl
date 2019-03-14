@@ -1,9 +1,6 @@
 using LinearAlgebra
 import Interpolations
 using SpecialFunctions
-using PyPlot
-import Base: show
-using NearestNeighbors
 using StaticArrays
 include("utils.jl")
 
